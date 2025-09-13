@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Customer Support Tasks</h1>
+            <div>
+                <button class="btn btn-success" onclick="pollEmails()">
+                    <i class="bi bi-envelope-plus"></i> Poll New Emails
+                </button>
+            </div>
+        </div>
+
+        <!-- Task Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="total-tasks">{{ tasks|length }}</h4>
+                                <p class="mb-0">Total Tasks</p>
+                            </div>
+                            <i class="bi bi-list-task fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="new-tasks">{{ tasks|selectattr('status', 'equalto', 'New')|list|length }}</h4>
+                                <p class="mb-0">New Tasks</p>
+                            </div>
+                            <i class="bi bi-exclamation-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="in-progress-tasks">{{ tasks|selectattr('status', 'equalto', 'In Progress')|list|length }}</h4>
+                                <p class="mb-0">In Progress</p>
+                            </div>
+                            <i class="bi bi-clock fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="completed-tasks">{{ tasks|selectattr('status', 'equalto', 'Completed')|list|length }}</h4>
+                                <p class="mb-0">Completed</p>
+                            </div>
+                            <i class="bi bi-check-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select class="form-select" id="status-filter">
+                            <option value="">All Status</option>
+                            <option value="New">New</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="On Hold">On Hold</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="priority-filter">
+                            <option value="">All Priorities</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="category-filter">
+                            <option value="">All Categories</option>
+                            <option value="Technical Issue">Technical Issue</option>
+                            <option value="Billing Question">Billing Question</option>
+                            <option value="Feature Request">Feature Request</option>
+                            <option value="Complaint">Complaint</option>
+                            <option value="General Inquiry">General Inquiry</option>
+                            <option value="Account Issue">Account Issue</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" id="search-input" placeholder="Search tasks...">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Sender</th>
+                                <th>Category</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasks-table-body">
+                            {% for task in tasks %}
+                            <tr data-task-id="{{ task.id }}" 
+                                data-status="{{ task.status }}" 
+                                data-priority="{{ task.priority }}" 
+                                data-category="{{ task.category }}">
+                                <td>
+                                    <strong>{{ task.subject }}</strong>
+                                    {% if task.summary %}
+                                    <br><small class="text-muted">{{ task.summary[:100] }}...</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ task.sender }}<br>
+                                    <small class="text-muted">{{ task.sender_email }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ task.category }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if task.priority == 'Urgent' %}bg-danger
+                                        {% elif task.priority == 'High' %}bg-warning
+                                        {% elif task.priority == 'Medium' %}bg-info
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ task.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm status-select" 
+                                            data-task-id="{{ task.id }}">
+                                        <option value="New" {% if task.status == 'New' %}selected{% endif %}>New</option>
+                                        <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                        <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                        <option value="On Hold" {% if task.status == 'On Hold' %}selected{% endif %}>On Hold</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <small>{{ task.created_at.strftime('%Y-%m-%d %H:%M') if task.created_at else 'N/A' }}</small>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" 
+                                            onclick="viewTask({{ task.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" 
+                                            onclick="deleteTask({{ task.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal fade" id="taskModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="taskModalBody">
+                <!-- Task details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add event listeners for filters and status updates
+document.addEventListener('DOMContentLoaded', function() {
+    // Status change handlers
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            updateTaskStatus(this.dataset.taskId, this.value);
+        });
+    });
+
+    // Filter handlers
+    document.getElementById('status-filter').addEventListener('change', filterTasks);
+    document.getElementById('priority-filter').addEventListener('change', filterTasks);
+    document.getElementById('category-filter').addEventListener('change', filterTasks);
+    document.getElementById('search-input').addEventListener('input', filterTasks);
+});
+</script>
+{% endblock %}

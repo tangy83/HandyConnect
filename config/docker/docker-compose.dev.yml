@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  handyconnect-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - DATA_DIR=/app/data
+      - TASKS_FILE=/app/data/tasks.json
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    restart: unless-stopped
+    command: ["python", "app.py"]
