@@ -79,11 +79,17 @@ HandyConnect/
 
 ## 📚 Documentation
 
+### 📋 Project Summary
+- **[Project Summary](docs/guides/PROJECT_SUMMARY.md)** - Complete team onboarding and project overview
+
 ### 🗺️ Development Roadmap
 - **[Comprehensive Roadmap](docs/roadmaps/COMPREHENSIVE_ROADMAP.md)** - Complete development guide with developer assignments, timelines, and coordination strategy
 
 ### 📖 User Guides
 - **[Project Guide](docs/guides/README.md)** - Detailed project documentation
+- **[Project Summary](docs/guides/PROJECT_SUMMARY.md)** - Complete team onboarding
+- **[Git Setup](docs/guides/GIT_SETUP.md)** - Repository workflow and collaboration
+- **[Sanity Check](docs/guides/SANITY_CHECK.md)** - Project completeness verification
 - **[API Documentation](docs/api/)** - API reference and examples
 - **[Deployment Guide](docs/deployment/)** - Deployment instructions
 

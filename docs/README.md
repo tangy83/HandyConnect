@@ -8,7 +8,10 @@ Welcome to the HandyConnect documentation hub. This directory contains all proje
 docs/
 ├── README.md                    # This file - Documentation index
 ├── guides/                      # User guides and tutorials
-│   └── README.md               # Detailed project guide
+│   ├── README.md               # Detailed project guide
+│   ├── PROJECT_SUMMARY.md      # Complete team onboarding
+│   ├── GIT_SETUP.md            # Repository workflow
+│   └── SANITY_CHECK.md         # Project completeness check
 ├── roadmaps/                   # Development roadmaps
 │   └── COMPREHENSIVE_ROADMAP.md # Complete development roadmap
 ├── api/                        # API documentation
@@ -36,6 +39,28 @@ docs/
 - Configuration guide
 - Usage examples
 - Troubleshooting
+
+### [Project Summary](guides/PROJECT_SUMMARY.md)
+**Complete team onboarding and project overview**
+- Team structure and responsibilities
+- Technical architecture
+- Development approach and timeline
+- Success criteria and metrics
+- Getting started instructions
+
+### [Git Setup](guides/GIT_SETUP.md)
+**Repository workflow and collaboration guide**
+- Git repository setup and branches
+- Development workflow and best practices
+- Integration strategy and coordination
+- Branch protection and pull request process
+
+### [Sanity Check](guides/SANITY_CHECK.md)
+**Project completeness verification**
+- Complete project scaffolding status
+- Technical architecture validation
+- Development readiness assessment
+- Quality assurance checklist
 
 ## 🔧 Quick Reference
 
