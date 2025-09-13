@@ -9,11 +9,11 @@ docs/
 ├── README.md                    # This file - Documentation index
 ├── guides/                      # User guides and tutorials
 │   ├── README.md               # Detailed project guide
-│   ├── PROJECT_SUMMARY.md      # Complete team onboarding
 │   ├── GIT_SETUP.md            # Repository workflow
 │   └── SANITY_CHECK.md         # Project completeness check
 ├── roadmaps/                   # Development roadmaps
-│   └── COMPREHENSIVE_ROADMAP.md # Complete development roadmap
+│   ├── COMPREHENSIVE_ROADMAP.md # Complete development roadmap
+│   └── PROJECT_SUMMARY.md      # Team onboarding and project overview
 ├── api/                        # API documentation
 └── deployment/                 # Deployment guides
 ```
@@ -30,6 +30,15 @@ docs/
 - Research topic integration
 - Convergence strategy and integration points
 
+### [Project Summary](roadmaps/PROJECT_SUMMARY.md)
+**Complete team onboarding and project overview**
+- Team structure and responsibilities
+- Technical architecture and technology stack
+- Development approach and timeline
+- Success criteria and metrics
+- Getting started instructions
+- Quick reference for stakeholders
+
 ## 📖 User Guides
 
 ### [Project Guide](guides/README.md)
@@ -40,13 +49,6 @@ docs/
 - Usage examples
 - Troubleshooting
 
-### [Project Summary](guides/PROJECT_SUMMARY.md)
-**Complete team onboarding and project overview**
-- Team structure and responsibilities
-- Technical architecture
-- Development approach and timeline
-- Success criteria and metrics
-- Getting started instructions
 
 ### [Git Setup](guides/GIT_SETUP.md)
 **Repository workflow and collaboration guide**
