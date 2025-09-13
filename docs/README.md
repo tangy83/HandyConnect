@@ -12,7 +12,7 @@ docs/
 │   ├── GIT_SETUP.md            # Repository workflow
 │   └── SANITY_CHECK.md         # Project completeness check
 ├── roadmaps/                   # Development roadmaps
-│   ├── COMPREHENSIVE_ROADMAP.md # Complete development roadmap
+│   ├── ROADMAP.md              # Complete development roadmap
 │   └── PROJECT_SUMMARY.md      # Team onboarding and project overview
 ├── api/                        # API documentation
 └── deployment/                 # Deployment guides
@@ -20,7 +20,7 @@ docs/
 
 ## 🗺️ Development Roadmap
 
-### [Comprehensive Roadmap](roadmaps/COMPREHENSIVE_ROADMAP.md)
+### [Roadmap](roadmaps/ROADMAP.md)
 **Complete development guide with developer assignments**
 - 2-week sprint approach (recommended for MVP)
 - 12-phase detailed approach (for comprehensive system)
@@ -68,7 +68,7 @@ docs/
 
 ### Getting Started
 1. **Setup**: Follow the [Project Guide](guides/README.md)
-2. **Development**: Use the [Comprehensive Roadmap](roadmaps/COMPREHENSIVE_ROADMAP.md)
+2. **Development**: Use the [Roadmap](roadmaps/ROADMAP.md)
 3. **Team Coordination**: Check the developer assignments in the roadmap
 
 ### Key Commands

@@ -34,7 +34,7 @@ HandyConnect/
 │   ├── guides/                 # User guides and tutorials
 │   │   └── README.md           # Detailed project guide
 │   ├── roadmaps/               # Development roadmaps
-│   │   └── COMPREHENSIVE_ROADMAP.md # Complete development roadmap
+│   │   └── ROADMAP.md              # Complete development roadmap
 │   ├── api/                    # API documentation
 │   └── deployment/             # Deployment guides
 ├── config/                     # ⚙️ Configuration
@@ -83,7 +83,7 @@ HandyConnect/
 - **[Project Summary](docs/roadmaps/PROJECT_SUMMARY.md)** - Complete team onboarding and project overview
 
 ### 🗺️ Development Roadmap
-- **[Comprehensive Roadmap](docs/roadmaps/COMPREHENSIVE_ROADMAP.md)** - Complete development guide with developer assignments, timelines, and coordination strategy
+- **[Roadmap](docs/roadmaps/ROADMAP.md)** - Complete development guide with developer assignments, timelines, and coordination strategy
 
 ### 📖 User Guides
 - **[Project Guide](docs/guides/README.md)** - Detailed project documentation
@@ -207,7 +207,7 @@ docker-compose --profile production up
 ## 🤝 Contributing
 
 1. Choose your development lane based on research interests
-2. Follow the [Comprehensive Roadmap](docs/roadmaps/COMPREHENSIVE_ROADMAP.md)
+2. Follow the [Roadmap](docs/roadmaps/ROADMAP.md)
 3. Use Test-Driven Development (TDD) practices
 4. Coordinate with other developers through daily standups
 5. Follow the convergence strategy for integration

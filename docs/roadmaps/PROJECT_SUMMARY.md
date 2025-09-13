@@ -240,7 +240,7 @@ python app.py
 ## 📚 Documentation & Resources
 
 ### **Essential Reading**
-- **[Comprehensive Roadmap](docs/roadmaps/COMPREHENSIVE_ROADMAP.md)**: Complete development guide
+- **[Roadmap](docs/roadmaps/ROADMAP.md)**: Complete development guide
 - **[Project Guide](docs/guides/README.md)**: Detailed technical documentation
 - **[Git Setup](GIT_SETUP.md)**: Repository workflow and best practices
 - **[Sanity Check](SANITY_CHECK.md)**: Project completeness verification

@@ -51,7 +51,7 @@
 - [x] `README.md` - Main project documentation
 - [x] `docs/README.md` - Documentation index
 - [x] `docs/guides/README.md` - User guides
-- [x] `docs/roadmaps/COMPREHENSIVE_ROADMAP.md` - Complete development roadmap
+- [x] `docs/roadmaps/ROADMAP.md` - Complete development roadmap
 - [x] `config/README.md` - Configuration documentation
 - [x] `features/README.md` - Feature modules documentation
 
