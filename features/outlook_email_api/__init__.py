@@ -10,14 +10,14 @@ Features:
 - Real-time email monitoring
 """
 
-from .email_fetcher import EmailFetcher
-from .email_parser import EmailParser
-from .email_filter import EmailFilter
-from .attachment_handler import AttachmentHandler
+from .email_threading import EmailThreadingService, EmailThread
+from .thread_api import thread_bp
+from .graph_testing import graph_test_bp
 
 __all__ = [
-    'EmailFetcher',
-    'EmailParser', 
-    'EmailFilter',
-    'AttachmentHandler'
+    'EmailThreadingService',
+    'EmailThread',
+    'thread_bp',
+    'graph_test_bp'
 ]
+

@@ -67,3 +67,5 @@ def pytest_collection_modifyitems(config, items):
         # Mark slow tests
         if "slow" in item.name or "load" in item.name:
             item.add_marker(pytest.mark.slow)
+
+

@@ -10,34 +10,45 @@ docs/
 ├── guides/                      # User guides and tutorials
 │   ├── README.md               # Detailed project guide
 │   ├── GIT_SETUP.md            # Repository workflow
-│   └── SANITY_CHECK.md         # Project completeness check
+│   ├── SANITY_CHECK.md         # Project completeness check
+│   └── DEVELOPER_SETUP.md      # Developer setup guide
 ├── roadmaps/                   # Development roadmaps
-│   ├── ROADMAP.md              # Complete development roadmap
-│   └── PROJECT_SUMMARY.md      # Team onboarding and project overview
+│   ├── PROJECT_OVERVIEW.md     # Team onboarding & technical architecture
+│   ├── DEVELOPMENT_PLAN.md     # Complete development roadmap & responsibilities
+│   └── CURRENT_STATUS.md       # Real-time project status & next steps
 ├── api/                        # API documentation
+│   └── API_REFERENCE.md        # Complete API reference
+├── testing/                    # Testing documentation
+│   ├── README.md               # Testing structure and guidelines
+│   └── Troubleshooting.md      # Comprehensive troubleshooting guide
 └── deployment/                 # Deployment guides
 ```
 
 ## 🗺️ Development Roadmap
 
-### [Roadmap](roadmaps/ROADMAP.md)
-**Complete development guide with developer assignments**
-- 2-week sprint approach (recommended for MVP)
-- 12-phase detailed approach (for comprehensive system)
-- Developer-specific task assignments and responsibilities
-- Daily coordination strategy and communication
-- Success metrics and testing strategy
-- Research topic integration
-- Convergence strategy and integration points
-
-### [Project Summary](roadmaps/PROJECT_SUMMARY.md)
-**Complete team onboarding and project overview**
+### [Project Overview](roadmaps/PROJECT_OVERVIEW.md)
+**Team onboarding & technical architecture**
+- Project overview and core value proposition
 - Team structure and responsibilities
 - Technical architecture and technology stack
-- Development approach and timeline
-- Success criteria and metrics
-- Getting started instructions
-- Quick reference for stakeholders
+- Quick start guide and setup instructions
+- Current capabilities and development environment
+
+### [Development Plan](roadmaps/DEVELOPMENT_PLAN.md)
+**Complete development roadmap & responsibilities**
+- 2-week phase breakdown with success criteria
+- Detailed developer responsibilities and tasks
+- Development convergence strategy
+- Key milestones and success metrics
+- Integration workflow and coordination
+
+### [Current Status](roadmaps/CURRENT_STATUS.md)
+**Real-time project status & next steps**
+- Current progress and completed components
+- In-progress and pending components
+- Immediate next steps for each developer
+- Known issues and blockers
+- Upcoming milestones and goals
 
 ## 📖 User Guides
 
@@ -63,6 +74,41 @@ docs/
 - Technical architecture validation
 - Development readiness assessment
 - Quality assurance checklist
+
+### [Developer Setup](guides/DEVELOPER_SETUP.md)
+**Complete developer setup guide**
+- Environment configuration
+- Dependencies installation
+- Testing setup
+- Development workflow
+- Troubleshooting guide
+
+## 🧪 Testing Documentation
+
+### [Testing Overview](testing/README.md)
+**Testing structure and guidelines**
+- Test organization and structure
+- Running tests and coverage
+- Test categories and coverage goals
+- Debugging and troubleshooting
+
+### [Troubleshooting Guide](testing/Troubleshooting.md)
+**Comprehensive troubleshooting and error resolution guide**
+- Common issues and solutions
+- Testing procedures and diagnostics
+- Debugging tools and techniques
+- Performance optimization
+- Error recovery procedures
+
+## 🔌 API Documentation
+
+### [API Reference](api/API_REFERENCE.md)
+**Complete API documentation**
+- All 7 REST endpoints documented
+- Request/response examples
+- Error codes and handling
+- Authentication and rate limiting
+- Python and curl examples
 
 ## 🔧 Quick Reference
 

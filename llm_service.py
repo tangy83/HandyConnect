@@ -118,3 +118,5 @@ class LLMService:
         except Exception as e:
             print(f"Error generating response suggestion: {e}")
             return "Thank you for contacting us. We are reviewing your request and will get back to you soon."
+
+

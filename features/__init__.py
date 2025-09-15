@@ -81,3 +81,5 @@ def get_features_by_status(status):
         name: info for name, info in FEATURE_REGISTRY.items() 
         if info['status'] == status
     }
+
+

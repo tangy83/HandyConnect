@@ -56,3 +56,5 @@ setup:
 	@mkdir -p data logs
 	@python scripts/setup/verify_setup.py
 	@echo "Setup complete! Configure your .env file and run 'make dev' to start"
+
+
