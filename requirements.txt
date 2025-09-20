@@ -9,6 +9,13 @@ python-dateutil==2.8.2
 email-validator==2.1.0
 gunicorn==21.2.0
 
+# Analytics and visualization dependencies
+psutil==5.9.5
+matplotlib==3.7.2
+seaborn==0.12.2
+plotly==5.15.0
+jsonschema==4.19.2
+
 # Testing dependencies
 pytest==7.4.3
 pytest-cov==4.1.0

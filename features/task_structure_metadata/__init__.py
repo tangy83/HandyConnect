@@ -10,16 +10,23 @@ Features:
 - Data migration and versioning
 """
 
-from .task_schema import TaskSchema
-from .metadata_extractor import MetadataExtractor
-from .task_validator import TaskValidator
-from .schema_migrator import SchemaMigrator
+from .task_schema import (
+    TaskSchema, TaskMetadata, TaskValidator, SchemaMigrator, MetadataExtractor,
+    TaskStatus, TaskPriority, TaskCategory
+)
+from .data_persistence import DataPersistenceManager, DataValidator
 
 __all__ = [
     'TaskSchema',
-    'MetadataExtractor',
+    'TaskMetadata',
     'TaskValidator',
-    'SchemaMigrator'
+    'SchemaMigrator',
+    'MetadataExtractor',
+    'TaskStatus',
+    'TaskPriority', 
+    'TaskCategory',
+    'DataPersistenceManager',
+    'DataValidator'
 ]
 
 

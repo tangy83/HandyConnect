@@ -10,6 +10,10 @@ from task_service import TaskService
 from features.outlook_email_api.email_threading import EmailThreadingService
 from features.outlook_email_api.thread_api import thread_bp
 from features.outlook_email_api.graph_testing import graph_test_bp
+from features.performance_reporting.analytics_api import create_analytics_api
+from features.analytics.analytics_api import analytics_bp as new_analytics_bp
+from features.analytics.analytics_framework import AnalyticsFramework, AnalyticsConfig
+from features.analytics.performance_metrics import start_performance_monitoring
 import threading
 import time
 from functools import wraps
@@ -58,6 +62,13 @@ except Exception as e:
 # Register thread API blueprint
 app.register_blueprint(thread_bp)
 app.register_blueprint(graph_test_bp)
+
+# Register analytics API blueprint
+analytics_bp = create_analytics_api()
+app.register_blueprint(analytics_bp)
+
+# Register new analytics API blueprint
+app.register_blueprint(new_analytics_bp, name='new_analytics')
 
 # JSON Data Storage
 DATA_FILE = 'data/tasks.json'
@@ -150,6 +161,56 @@ def index():
     except Exception as e:
         logger.error(f"Error in index route: {e}")
         return render_template('index.html', tasks=[], error="Failed to load tasks")
+
+@app.route('/threads')
+def threads():
+    """Email threads page"""
+    try:
+        # For now, we'll create mock thread data
+        # In a real implementation, this would come from the threading service
+        threads = [
+            {
+                'id': 1,
+                'subject': 'Account Access Issue',
+                'summary': 'Customer unable to access their account',
+                'status': 'Active',
+                'priority': 'High',
+                'message_count': 5,
+                'participants': [
+                    {'name': 'John Doe', 'email': 'john@example.com'},
+                    {'name': 'Support Agent', 'email': 'support@company.com'}
+                ],
+                'created_at': '2025-09-20T10:00:00Z',
+                'last_activity': '2025-09-20T13:30:00Z'
+            },
+            {
+                'id': 2,
+                'subject': 'Billing Question',
+                'summary': 'Customer has questions about their recent bill',
+                'status': 'Pending',
+                'priority': 'Medium',
+                'message_count': 3,
+                'participants': [
+                    {'name': 'Jane Smith', 'email': 'jane@example.com'},
+                    {'name': 'Billing Team', 'email': 'billing@company.com'}
+                ],
+                'created_at': '2025-09-20T11:15:00Z',
+                'last_activity': '2025-09-20T12:45:00Z'
+            }
+        ]
+        return render_template('threads.html', threads=threads)
+    except Exception as e:
+        logger.error(f"Error in threads route: {e}")
+        return render_template('threads.html', threads=[], error="Failed to load threads")
+
+@app.route('/analytics')
+def analytics():
+    """Analytics dashboard page"""
+    try:
+        return render_template('analytics.html')
+    except Exception as e:
+        logger.error(f"Error in analytics route: {e}")
+        return render_template('analytics.html', error="Failed to load analytics dashboard")
 
 @app.route('/api/health')
 def health_check():
@@ -552,6 +613,27 @@ if __name__ == '__main__':
     # Start email polling in background thread
     polling_thread = threading.Thread(target=email_polling_worker, daemon=True)
     polling_thread.start()
+    
+    # Initialize analytics framework
+    try:
+        analytics_config = AnalyticsConfig(
+            collection_interval_seconds=60,
+            aggregation_interval_minutes=15,
+            retention_days=90,
+            enable_real_time=True,
+            enable_historical=True
+        )
+        analytics_framework = AnalyticsFramework(analytics_config)
+        analytics_framework.start()
+        logger.info("Analytics framework started")
+        
+        # Start performance monitoring
+        start_performance_monitoring(interval_seconds=60)
+        logger.info("Performance monitoring started")
+        
+    except Exception as e:
+        logger.error(f"Failed to initialize analytics framework: {e}")
+    
     logger.info("Application starting...")
     
     app.run(debug=True, host='0.0.0.0', port=5001)

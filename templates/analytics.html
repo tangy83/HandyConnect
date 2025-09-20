@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - HandyConnect{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Analytics Dashboard</h1>
+            <div>
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary" onclick="refreshAnalytics()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportAnalytics()">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Date Range Selector -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="start-date" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start-date" onchange="updateDateRange()">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="end-date" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="end-date" onchange="updateDateRange()">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="quick-range" class="form-label">Quick Range</label>
+                        <select class="form-select" id="quick-range" onchange="setQuickRange()">
+                            <option value="">Select Range</option>
+                            <option value="7">Last 7 Days</option>
+                            <option value="30">Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-primary" onclick="loadAnalytics()">
+                            <i class="bi bi-search"></i> Load Analytics
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="total-tasks-metric">-</h4>
+                                <p class="mb-0">Total Tasks</p>
+                            </div>
+                            <i class="bi bi-list-task fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="avg-response-time">-</h4>
+                                <p class="mb-0">Avg Response Time (min)</p>
+                            </div>
+                            <i class="bi bi-clock fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="escalation-rate">-</h4>
+                                <p class="mb-0">Escalation Rate (%)</p>
+                            </div>
+                            <i class="bi bi-exclamation-triangle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 id="satisfaction-score">-</h4>
+                                <p class="mb-0">Satisfaction Score</p>
+                            </div>
+                            <i class="bi bi-star fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Task Status Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="taskStatusChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Priority Distribution</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="priorityChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Response Time Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="responseTimeChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Performance Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 3 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">System Health</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="systemHealthChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Category Breakdown</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="categoryChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 4 -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Escalation Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="escalationChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Global variables
+let charts = {};
+let currentDateRange = {
+    start: null,
+    end: null
+};
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date range (last 30 days)
+    setDefaultDateRange();
+    
+    // Load initial analytics
+    loadAnalytics();
+    
+    // Set up auto-refresh every 5 minutes
+    setInterval(loadAnalytics, 5 * 60 * 1000);
+});
+
+function setDefaultDateRange() {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30);
+    
+    document.getElementById('end-date').value = endDate.toISOString().split('T')[0];
+    document.getElementById('start-date').value = startDate.toISOString().split('T')[0];
+    
+    currentDateRange.start = startDate.toISOString().split('T')[0];
+    currentDateRange.end = endDate.toISOString().split('T')[0];
+}
+
+function setQuickRange() {
+    const quickRange = document.getElementById('quick-range').value;
+    if (!quickRange) return;
+    
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(quickRange));
+    
+    document.getElementById('end-date').value = endDate.toISOString().split('T')[0];
+    document.getElementById('start-date').value = startDate.toISOString().split('T')[0];
+    
+    updateDateRange();
+}
+
+function updateDateRange() {
+    currentDateRange.start = document.getElementById('start-date').value;
+    currentDateRange.end = document.getElementById('end-date').value;
+}
+
+async function loadAnalytics() {
+    try {
+        showLoadingIndicator();
+        
+        // Load analytics report
+        const reportResponse = await fetch(`/api/analytics/report?start_date=${currentDateRange.start}&end_date=${currentDateRange.end}`);
+        const reportData = await reportResponse.json();
+        
+        if (reportData.status === 'success') {
+            updateMetricsCards(reportData.data);
+        }
+        
+        // Load charts data
+        const chartsResponse = await fetch(`/api/analytics/charts?start_date=${currentDateRange.start}&end_date=${currentDateRange.end}`);
+        const chartsData = await chartsResponse.json();
+        
+        if (chartsData.status === 'success') {
+            renderCharts(chartsData.data.charts);
+        }
+        
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+        showNotification('Error loading analytics data', 'error');
+    } finally {
+        hideLoadingIndicator();
+    }
+}
+
+function updateMetricsCards(data) {
+    const taskAnalytics = data.task_analytics || {};
+    
+    // Update metric cards
+    document.getElementById('total-tasks-metric').textContent = taskAnalytics.total_tasks || 0;
+    document.getElementById('avg-response-time').textContent = taskAnalytics.avg_response_time_minutes || 0;
+    document.getElementById('escalation-rate').textContent = taskAnalytics.escalation_rate_percent || 0;
+    document.getElementById('satisfaction-score').textContent = taskAnalytics.avg_satisfaction_score || 0;
+}
+
+function renderCharts(chartsData) {
+    // Task Status Chart
+    if (chartsData.task_status) {
+        renderChart('taskStatusChart', chartsData.task_status);
+    }
+    
+    // Priority Distribution Chart
+    if (chartsData.priority_distribution) {
+        renderChart('priorityChart', chartsData.priority_distribution);
+    }
+    
+    // Response Time Trend Chart
+    if (chartsData.response_time_trend) {
+        renderChart('responseTimeChart', chartsData.response_time_trend);
+    }
+    
+    // Performance Metrics Chart
+    if (chartsData.performance_metrics) {
+        renderChart('performanceChart', chartsData.performance_metrics);
+    }
+    
+    // System Health Chart
+    if (chartsData.system_health) {
+        renderChart('systemHealthChart', chartsData.system_health);
+    }
+    
+    // Category Breakdown Chart
+    if (chartsData.category_breakdown) {
+        renderChart('categoryChart', chartsData.category_breakdown);
+    }
+    
+    // Escalation Trend Chart
+    if (chartsData.escalation_trend) {
+        renderChart('escalationChart', chartsData.escalation_trend);
+    }
+}
+
+function renderChart(canvasId, chartConfig) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    // Destroy existing chart if it exists
+    if (charts[canvasId]) {
+        charts[canvasId].destroy();
+    }
+    
+    // Create new chart
+    charts[canvasId] = new Chart(canvas, chartConfig);
+}
+
+async function refreshAnalytics() {
+    await loadAnalytics();
+    showNotification('Analytics refreshed successfully', 'success');
+}
+
+async function exportAnalytics() {
+    try {
+        showLoadingIndicator();
+        
+        const response = await fetch('/api/analytics/admin/export', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                data_type: 'tasks',
+                start_date: currentDateRange.start,
+                end_date: currentDateRange.end
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            showNotification('Analytics data exported successfully', 'success');
+        } else {
+            showNotification('Failed to export analytics data', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error exporting analytics:', error);
+        showNotification('Error exporting analytics data', 'error');
+    } finally {
+        hideLoadingIndicator();
+    }
+}
+
+// Utility functions (reuse from app-enhanced.js)
+function showLoadingIndicator() {
+    let indicator = document.getElementById('loading-indicator');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'loading-indicator';
+        indicator.className = 'spinner-border text-primary polling-indicator';
+        indicator.innerHTML = '<span class="visually-hidden">Loading...</span>';
+        document.body.appendChild(indicator);
+    }
+    indicator.style.display = 'block';
+}
+
+function hideLoadingIndicator() {
+    const indicator = document.getElementById('loading-indicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show notification`;
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.zIndex = '9999';
+    notification.style.minWidth = '300px';
+    
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

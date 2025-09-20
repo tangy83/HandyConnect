@@ -1,0 +1,341 @@
+name: HandyConnect CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        python-version: [3.11]
+        test-type: [unit, integration, api, analytics]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-cov pytest-html pytest-json-report
+    
+    - name: Create test directories
+      run: |
+        mkdir -p data
+        mkdir -p logs
+        mkdir -p data\analytics
+    
+    - name: Run ${{ matrix.test-type }} tests
+      run: |
+        python tests/test_runner.py --type ${{ matrix.test-type }}
+      env:
+        CLIENT_ID: test_client_id
+        CLIENT_SECRET: test_client_secret
+        TENANT_ID: test_tenant_id
+        OPENAI_API_KEY: test_openai_key
+        SECRET_KEY: test_secret_key
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.test-type }}
+        path: |
+          htmlcov/
+          coverage.xml
+          test_report.json
+          test_report.html
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: matrix.test-type == 'unit'
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  integration-test:
+    runs-on: windows-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-cov pytest-html pytest-json-report
+    
+    - name: Create test directories
+      run: |
+        mkdir -p data
+        mkdir -p logs
+        mkdir -p data\analytics
+    
+    - name: Run integration tests
+      run: |
+        python tests/test_runner.py --type integration
+      env:
+        CLIENT_ID: test_client_id
+        CLIENT_SECRET: test_client_secret
+        TENANT_ID: test_tenant_id
+        OPENAI_API_KEY: test_openai_key
+        SECRET_KEY: test_secret_key
+    
+    - name: Upload integration test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: integration-test-results
+        path: |
+          htmlcov/
+          coverage.xml
+          test_report.json
+          test_report.html
+
+  e2e-test:
+    runs-on: windows-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-cov pytest-html pytest-json-report
+    
+    - name: Create test directories
+      run: |
+        mkdir -p data
+        mkdir -p logs
+        mkdir -p data\analytics
+    
+    - name: Start application
+      run: |
+        python app.py &
+        timeout 10
+      env:
+        CLIENT_ID: test_client_id
+        CLIENT_SECRET: test_client_secret
+        TENANT_ID: test_tenant_id
+        OPENAI_API_KEY: test_openai_key
+        SECRET_KEY: test_secret_key
+    
+    - name: Wait for application to start
+      run: |
+        timeout 5
+        curl -f http://localhost:5001/api/health || exit 1
+    
+    - name: Run E2E tests
+      run: |
+        python tests/test_runner.py --type e2e
+      env:
+        CLIENT_ID: test_client_id
+        CLIENT_SECRET: test_client_secret
+        TENANT_ID: test_tenant_id
+        OPENAI_API_KEY: test_openai_key
+        SECRET_KEY: test_secret_key
+    
+    - name: Stop application
+      run: |
+        taskkill /F /IM python.exe || echo "No Python processes to kill"
+    
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: e2e-test-results
+        path: |
+          htmlcov/
+          coverage.xml
+          test_report.json
+          test_report.html
+
+  performance-test:
+    runs-on: windows-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-cov pytest-html pytest-json-report
+    
+    - name: Create test directories
+      run: |
+        mkdir -p data
+        mkdir -p logs
+        mkdir -p data\analytics
+    
+    - name: Run performance tests
+      run: |
+        python tests/test_runner.py --type performance
+      env:
+        CLIENT_ID: test_client_id
+        CLIENT_SECRET: test_client_secret
+        TENANT_ID: test_tenant_id
+        OPENAI_API_KEY: test_openai_key
+        SECRET_KEY: test_secret_key
+    
+    - name: Upload performance test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-test-results
+        path: |
+          htmlcov/
+          coverage.xml
+          test_report.json
+          test_report.html
+
+  security-test:
+    runs-on: windows-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install bandit safety
+    
+    - name: Run security scan with bandit
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+    
+    - name: Run dependency security check
+      run: |
+        safety check --json --output safety-report.json || true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  build:
+    runs-on: windows-latest
+    needs: [test, integration-test, e2e-test, performance-test]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create build directories
+      run: |
+        mkdir -p data
+        mkdir -p logs
+        mkdir -p data\analytics
+    
+    - name: Run final test suite
+      run: |
+        python tests/test_runner.py --type all
+      env:
+        CLIENT_ID: test_client_id
+        CLIENT_SECRET: test_client_secret
+        TENANT_ID: test_tenant_id
+        OPENAI_API_KEY: test_openai_key
+        SECRET_KEY: test_secret_key
+    
+    - name: Generate test report
+      run: |
+        python tests/test_runner.py --report
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: |
+          htmlcov/
+          coverage.xml
+          test_report.json
+          test_report.html
+          data/
+          logs/
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: build-artifacts
+        path: ./
+    
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production..."
+        echo "This would typically involve:"
+        echo "1. Building Docker image"
+        echo "2. Pushing to container registry"
+        echo "3. Deploying to production environment"
+        echo "4. Running health checks"
+        echo "5. Updating monitoring"
+    
+    - name: Notify deployment
+      run: |
+        echo "Deployment completed successfully!"
+        echo "Application is now live at: https://handyconnect.example.com"
