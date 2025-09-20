@@ -10,16 +10,20 @@ Features:
 - Performance metrics tracking
 """
 
-from .report_generator import ReportGenerator
-from .dashboard_manager import DashboardManager
-from .metrics_collector import MetricsCollector
-from .data_visualizer import DataVisualizer
+from .analytics_framework import (
+    MetricsCollector, TaskAnalyticsEngine, PerformanceMonitor, AnalyticsDashboard
+)
+from .data_visualization import DataVisualizer
+from .analytics_api import AnalyticsAPI, create_analytics_api
 
 __all__ = [
-    'ReportGenerator',
-    'DashboardManager',
     'MetricsCollector',
-    'DataVisualizer'
+    'TaskAnalyticsEngine', 
+    'PerformanceMonitor',
+    'AnalyticsDashboard',
+    'DataVisualizer',
+    'AnalyticsAPI',
+    'create_analytics_api'
 ]
 
 
