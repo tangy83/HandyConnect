@@ -185,3 +185,4 @@ HandyConnect/
 **Version**: 1.0.0  
 **Status**: Phase 1.1 & 1.2 Complete, Ready for Phase 1.3
 
+

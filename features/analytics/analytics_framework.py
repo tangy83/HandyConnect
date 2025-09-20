@@ -62,8 +62,10 @@ class MetricsCollector:
                 resolved = datetime.fromisoformat(task_data['resolved_at'].replace('Z', '+00:00'))
                 resolution_time = (resolved - created).total_seconds() / 60
             
+            # Handle both 'id' and 'task_id' field names for compatibility
+            task_id = task_data.get('task_id') or task_data.get('id', '')
             analytics = TaskAnalytics(
-                task_id=task_data.get('id', ''),
+                task_id=task_id,
                 created_at=task_data.get('created_at', get_current_timestamp()),
                 updated_at=task_data.get('updated_at', get_current_timestamp()),
                 status=task_data.get('status', 'New'),
@@ -120,8 +122,10 @@ class MetricsCollector:
                     resolved = datetime.fromisoformat(thread_data['resolved_at'].replace('Z', '+00:00'))
                     resolution_time = (resolved - created).total_seconds() / 60
             
+            # Handle both 'id' and 'thread_id' field names for compatibility
+            thread_id = thread_data.get('thread_id') or thread_data.get('id', '')
             analytics = ThreadAnalytics(
-                thread_id=thread_data.get('id', ''),
+                thread_id=thread_id,
                 created_at=thread_data.get('created_at', get_current_timestamp()),
                 updated_at=thread_data.get('updated_at', get_current_timestamp()),
                 status=thread_data.get('status', 'Active'),

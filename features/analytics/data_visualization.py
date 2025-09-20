@@ -15,7 +15,7 @@ from dataclasses import dataclass
 import statistics
 from collections import defaultdict
 
-from .data_schema import TaskAnalytics, ThreadAnalytics, PerformanceMetric, SystemHealth
+from .data_schema import TaskAnalytics, ThreadAnalytics, PerformanceMetric, SystemHealth, get_current_timestamp
 from .data_persistence import AnalyticsDataPersistence
 from .analytics_framework import DataAggregator
 
