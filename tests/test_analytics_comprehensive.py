@@ -238,7 +238,7 @@ class TestDataPersistence:
             exported_data = json.load(f)
         
         assert len(exported_data) == 1
-        assert exported_data[0]['task_id'] == sample_task_data['id']
+        assert exported_data[0]['task_id'] == sample_task_data['task_id']
     
     @pytest.mark.integration
     @pytest.mark.analytics
@@ -283,7 +283,7 @@ class TestAnalyticsFramework:
         # Verify data was saved
         tasks = analytics_framework.persistence.load_task_analytics()
         assert len(tasks) == 1
-        assert tasks[0].task_id == sample_task_data['id']
+        assert tasks[0].task_id == sample_task_data['task_id']
     
     @pytest.mark.integration
     @pytest.mark.analytics
@@ -295,7 +295,7 @@ class TestAnalyticsFramework:
         # Verify data was saved
         threads = analytics_framework.persistence.load_thread_analytics()
         assert len(threads) == 1
-        assert threads[0].thread_id == sample_thread_data['id']
+        assert threads[0].thread_id == sample_thread_data['thread_id']
     
     @pytest.mark.integration
     @pytest.mark.analytics
@@ -347,7 +347,7 @@ class TestDataAggregator:
         # Create and save multiple task analytics
         for i in range(5):
             task_data = sample_task_data.copy()
-            task_data['id'] = i
+            task_data['task_id'] = str(i)
             task_data['status'] = 'New' if i % 2 == 0 else 'Completed'
             task_data['priority'] = 'High' if i % 3 == 0 else 'Medium'
             
@@ -376,7 +376,7 @@ class TestDataAggregator:
         # Create and save multiple thread analytics
         for i in range(3):
             thread_data = sample_thread_data.copy()
-            thread_data['id'] = i
+            thread_data['thread_id'] = str(i)
             thread_data['status'] = 'Active' if i % 2 == 0 else 'Resolved'
             thread_data['message_count'] = i + 1
             

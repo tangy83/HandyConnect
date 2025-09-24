@@ -140,6 +140,10 @@ class TaskAnalytics:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'TaskAnalytics':
+        # Handle both 'id' and 'task_id' field names for compatibility
+        if 'id' in data and 'task_id' not in data:
+            data = data.copy()
+            data['task_id'] = data.pop('id')
         return cls(**data)
 
     def validate(self) -> bool:
@@ -179,6 +183,10 @@ class ThreadAnalytics:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ThreadAnalytics':
+        # Handle both 'id' and 'thread_id' field names for compatibility
+        if 'id' in data and 'thread_id' not in data:
+            data = data.copy()
+            data['thread_id'] = data.pop('id')
         return cls(**data)
 
     def validate(self) -> bool:
@@ -357,8 +365,10 @@ def get_current_timestamp() -> str:
 
 def create_task_analytics_from_task(task_data: Dict[str, Any]) -> TaskAnalytics:
     """Create TaskAnalytics from task data"""
+    # Handle both 'id' and 'task_id' field names for compatibility
+    task_id = task_data.get('task_id') or task_data.get('id', generate_analytics_id())
     return TaskAnalytics(
-        task_id=task_data.get('id', generate_analytics_id()),
+        task_id=task_id,
         created_at=task_data.get('created_at', get_current_timestamp()),
         updated_at=task_data.get('updated_at', get_current_timestamp()),
         status=task_data.get('status', 'New'),
@@ -370,15 +380,18 @@ def create_task_analytics_from_task(task_data: Dict[str, Any]) -> TaskAnalytics:
     )
 
 def create_performance_metric(metric_type: str, value: float, unit: str, 
-                            category: str = "", priority: str = "Medium") -> PerformanceMetric:
+                            category: str = "", priority: str = "", metadata: dict = None) -> PerformanceMetric:
     """Create a performance metric"""
+    if metadata is None:
+        metadata = {}
     return PerformanceMetric(
         timestamp=get_current_timestamp(),
         metric_type=metric_type,
         value=value,
         unit=unit,
         category=category,
-        priority=priority
+        priority=priority,
+        metadata=metadata
     )
 
 def create_system_health(service_name: str, status: str, **kwargs) -> SystemHealth:

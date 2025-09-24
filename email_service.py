@@ -50,6 +50,11 @@ class EmailService:
             since_time = datetime.utcnow() - timedelta(hours=24)
             filter_param = f"receivedDateTime ge {since_time.isoformat()}Z"
             
+            # Note: /me endpoint requires delegated permissions
+            # Current setup uses client credentials (application permissions)
+            # This will fail until we either:
+            # 1. Switch to delegated auth flow, or
+            # 2. Use a specific user mailbox with application permissions
             url = f"{self.graph_url}/me/mailFolders/{folder}/messages"
             params = {
                 '$filter': filter_param,
