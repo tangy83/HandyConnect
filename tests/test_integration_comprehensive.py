@@ -144,7 +144,7 @@ class TestDataFlowIntegration:
     def test_performance_monitor_data_flow(self, performance_monitor):
         """Test data flow through performance monitor"""
         # Record metrics
-        performance_monitor.record_custom_metric('test_metric', 50.0, 'units', 'test')
+        performance_monitor.record_custom_metric('volume', 50.0, 'units', 'test')
         
         # Process metrics buffer
         performance_monitor._process_metrics_buffer()

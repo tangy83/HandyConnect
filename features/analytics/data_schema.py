@@ -370,7 +370,7 @@ def create_task_analytics_from_task(task_data: Dict[str, Any]) -> TaskAnalytics:
     )
 
 def create_performance_metric(metric_type: str, value: float, unit: str, 
-                            category: str = "", priority: str = "") -> PerformanceMetric:
+                            category: str = "", priority: str = "Medium") -> PerformanceMetric:
     """Create a performance metric"""
     return PerformanceMetric(
         timestamp=get_current_timestamp(),
