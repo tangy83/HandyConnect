@@ -299,7 +299,7 @@ class DataAggregator:
             metrics = self.persistence.load_performance_metrics(start_date, end_date, metric_type)
             
             if not metrics:
-                return self._empty_aggregation()
+                return self._empty_performance_aggregation()
             
             # Group by metric type
             by_type = defaultdict(list)
@@ -328,7 +328,7 @@ class DataAggregator:
             }
         except Exception as e:
             logger.error(f"Error aggregating performance metrics: {e}")
-            return self._empty_aggregation()
+            return self._empty_performance_aggregation()
     
     def aggregate_system_health(self, start_date: datetime, end_date: datetime, 
                               service_name: Optional[str] = None) -> Dict[str, Any]:
@@ -391,6 +391,17 @@ class DataAggregator:
             'avg_resolution_time_minutes': 0,
             'escalation_rate_percent': 0,
             'avg_satisfaction_score': 0,
+            'period': {
+                'start': datetime.now(timezone.utc).isoformat(),
+                'end': datetime.now(timezone.utc).isoformat()
+            }
+        }
+    
+    def _empty_performance_aggregation(self) -> Dict[str, Any]:
+        """Return empty performance metrics aggregation structure"""
+        return {
+            'metrics': {},
+            'total_metrics': 0,
             'period': {
                 'start': datetime.now(timezone.utc).isoformat(),
                 'end': datetime.now(timezone.utc).isoformat()

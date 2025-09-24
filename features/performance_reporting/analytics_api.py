@@ -21,7 +21,7 @@ class AnalyticsAPI:
     """Analytics API endpoints and functionality"""
     
     def __init__(self):
-        self.blueprint = Blueprint('analytics', __name__, url_prefix='/api/analytics')
+        self.blueprint = Blueprint('performance_analytics', __name__, url_prefix='/api/performance-analytics')
         self.logger = logging.getLogger(__name__)
         
         # Initialize components
@@ -123,18 +123,21 @@ class AnalyticsAPI:
                     metrics_data = self.metrics_collector.get_aggregated_metrics((start_time, end_time))
                 
                 return jsonify({
-                    'success': True,
+                    'status': 'success',
+                    'message': 'Metrics retrieved successfully',
                     'data': metrics_data,
                     'time_range': {
                         'start': start_time.isoformat(),
-                        'end': end_time.isoformat()
+                        'end': end_time.isoformat(),
+                        'hours': time_range_hours
                     }
                 })
                 
             except Exception as e:
                 self.logger.error(f"Error getting metrics: {e}")
                 return jsonify({
-                    'success': False,
+                    'status': 'error',
+                    'message': 'Failed to get metrics',
                     'error': str(e)
                 }), 500
         
@@ -220,18 +223,21 @@ class AnalyticsAPI:
                     'memory_usage_mb': performance_metrics.memory_usage_mb,
                     'active_connections': performance_metrics.active_connections,
                     'queue_size': performance_metrics.queue_size,
+                    'status': 'active',
                     'timestamp': datetime.utcnow().isoformat()
                 }
                 
                 return jsonify({
-                    'success': True,
+                    'status': 'success',
+                    'message': 'Performance metrics retrieved successfully',
                     'data': metrics_data
                 })
                 
             except Exception as e:
                 self.logger.error(f"Error getting performance metrics: {e}")
                 return jsonify({
-                    'success': False,
+                    'status': 'error',
+                    'message': 'Failed to get performance metrics',
                     'error': str(e)
                 }), 500
         

@@ -9,10 +9,13 @@ validation, and data persistence for the HandyConnect system.
 
 import json
 import jsonschema
+import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, asdict
 import uuid
+
+logger = logging.getLogger(__name__)
 
 # ==================== CORE DATA SCHEMAS ====================
 
@@ -64,11 +67,17 @@ PERFORMANCE_METRICS_SCHEMA = {
     "type": "object",
     "properties": {
         "timestamp": {"type": "string", "format": "date-time"},
-        "metric_type": {"type": "string", "enum": ["response_time", "resolution_time", "satisfaction", "volume", "escalation"]},
+        "metric_type": {"type": "string", "enum": [
+            "response_time", "resolution_time", "satisfaction", "volume", "escalation",
+            "cpu_usage", "memory_usage", "disk_usage", "swap_usage", "error_rate",
+            "escalation_rate", "throughput", "active_connections", "queue_size",
+            "memory_available_gb", "disk_free_gb", "thread_response_time", "thread_resolution_time",
+            "network_bytes_sent", "network_bytes_received", "network_connections", "network_latency"
+        ]},
         "value": {"type": "number"},
         "unit": {"type": "string"},
         "category": {"type": "string"},
-        "priority": {"type": "string", "enum": ["Low", "Medium", "High", "Urgent"]},
+        "priority": {"type": "string", "enum": ["Low", "Medium", "High", "Urgent", ""]},
         "tags": {"type": "array", "items": {"type": "string"}},
         "metadata": {"type": "object"}
     },
