@@ -103,6 +103,30 @@ def parse_date_range() -> tuple[datetime, datetime]:
 def analytics_health():
     """Analytics service health check"""
     try:
+        # Lightweight health check - just verify services are available
+        framework = get_analytics_framework()
+        
+        health_data = {
+            'service': 'analytics',
+            'status': 'healthy',
+            'framework_running': framework._running,
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        }
+        
+        return jsonify({
+            "status": "success",
+            "message": "Analytics service is healthy",
+            "data": health_data
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error in analytics health check: {e}")
+        return error_response("Analytics service health check failed", 500, str(e))
+
+@analytics_bp.route('/health/detailed', methods=['GET'])
+def analytics_health_detailed():
+    """Detailed analytics service health check with metrics"""
+    try:
         framework = get_analytics_framework()
         persistence = get_data_persistence()
         
@@ -122,11 +146,15 @@ def analytics_health():
             'timestamp': datetime.now(timezone.utc).isoformat()
         }
         
-        return success_response(health_data, "Analytics service is healthy")
+        return jsonify({
+            "status": "success",
+            "message": "Analytics service is healthy",
+            "data": health_data
+        }), 200
         
     except Exception as e:
-        logger.error(f"Error in analytics health check: {e}")
-        return error_response("Analytics service health check failed", 500, str(e))
+        logger.error(f"Error in detailed analytics health check: {e}")
+        return error_response("Detailed analytics service health check failed", 500, str(e))
 
 @analytics_bp.route('/report', methods=['GET'])
 def get_analytics_report():
@@ -509,6 +537,16 @@ def get_metrics_summary():
         
         # Get metrics summary
         summary = monitor.get_metrics_summary(hours)
+        
+        # Add time_range field to summary
+        if isinstance(summary, dict):
+            end_time = datetime.now(timezone.utc)
+            start_time = end_time - timedelta(hours=hours)
+            summary['time_range'] = {
+                'start': start_time.isoformat(),
+                'end': end_time.isoformat(),
+                'hours': hours
+            }
         
         return success_response(summary, "Metrics summary retrieved successfully")
         

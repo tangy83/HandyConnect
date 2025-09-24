@@ -380,8 +380,7 @@ class PerformanceMonitor:
                 metric_type=metric_type,
                 value=value,
                 unit=unit,
-                category=category,
-                metadata=metadata
+                category=category
             )
             
             with self._lock:
