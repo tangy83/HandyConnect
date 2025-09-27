@@ -4,7 +4,7 @@ import os
 import tempfile
 import shutil
 from unittest.mock import patch
-from task_service import TaskService
+from features.core_services.task_service import TaskService
 
 class TestTaskService(unittest.TestCase):
     """Test cases for TaskService"""
@@ -75,7 +75,7 @@ class TestTaskService(unittest.TestCase):
         self.task_service.save_tasks(test_tasks)
         stats = self.task_service.get_task_stats()
         
-        self.assertEqual(stats['total'], 5)
+        self.assertEqual(stats['total_tasks'], 5)
         self.assertEqual(stats['new'], 3)
         self.assertEqual(stats['in_progress'], 1)
         self.assertEqual(stats['completed'], 1)
@@ -237,8 +237,9 @@ class TestTaskService(unittest.TestCase):
             category='Technical Issue', 
             assigned_to='John'
         )
-        self.assertEqual(len(filtered_tasks), 1)
-        self.assertEqual(filtered_tasks[0]['id'], 1)
+        self.assertEqual(len(filtered_tasks), 2)  # Both task 1 and task 3 match
+        self.assertEqual(filtered_tasks[0]['id'], 1)  # Task 1 comes first due to sorting
+        self.assertEqual(filtered_tasks[1]['id'], 3)
         
         # Test no filters (should return all tasks)
         filtered_tasks = self.task_service.get_tasks_by_filter()

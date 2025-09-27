@@ -2,6 +2,7 @@ import openai
 import os
 import json
 import re
+from .category_tree import property_categories
 
 class LLMService:
     def __init__(self):
@@ -12,30 +13,36 @@ class LLMService:
         try:
             # Prepare the email content for analysis
             email_content = f"""
-            Subject: {email['subject']}
-            From: {email['sender']['name']} ({email['sender']['email']})
-            Content: {email['body']}
+            Subject: {email.get('subject', '')}
+            From: {email.get('sender', {}).get('name', '')} ({email.get('sender', {}).get('email', '')})
+            Content: {email.get('body', '')}
             """
+            
+            # Get all available categories for the prompt
+            all_categories = property_categories.get_all_leaf_categories()
+            category_list = ", ".join(all_categories[:20])  # Limit to first 20 for prompt length
             
             # Create a prompt for the LLM
             prompt = f"""
-            Analyze the following customer support email and extract key information:
+            Analyze the following property management email and extract key information:
             
             {email_content}
             
             Please provide a JSON response with the following structure:
             {{
                 "summary": "A concise summary of the customer's issue or request (max 200 words)",
-                "category": "One of: Technical Issue, Billing Question, Feature Request, Complaint, General Inquiry, Account Issue",
+                "category": "One of: {category_list}",
                 "priority": "One of: Low, Medium, High, Urgent",
                 "sentiment": "One of: Positive, Neutral, Negative, Frustrated",
                 "action_required": "Brief description of what action needs to be taken"
             }}
             
             Guidelines:
-            - Priority should be High for urgent technical issues, billing problems, or complaints
-            - Priority should be Urgent for security issues, service outages, or angry customers
-            - Category should be based on the main topic of the email
+            - This is a PROPERTY MANAGEMENT system, so focus on property-related issues
+            - Priority should be High for urgent maintenance, safety, or security issues
+            - Priority should be Urgent for emergencies, safety hazards, or security breaches
+            - Category should be the most specific category that matches the issue
+            - Common categories include: Plumbing, Electrical, HVAC, Structural, Maintenance & Repairs, Utilities, Billing & Accounts, Amenities & Services, Safety & Security, Neighbour Relations, Cleaning & Waste, Requests & Inquiries
             - Summary should capture the essence of what the customer is asking for
             - Be concise but informative
             """
@@ -60,18 +67,26 @@ class LLMService:
                 result = json.loads(json_str)
                 
                 # Validate and clean the result
+                category = result.get('category', 'Miscellaneous')
+                
+                # Validate category against our tree
+                if category not in property_categories.categories:
+                    # Try to find best match
+                    category, _ = property_categories.find_best_category(email_content)
+                
                 return {
                     'summary': result.get('summary', 'No summary available'),
-                    'category': result.get('category', 'General Inquiry'),
+                    'category': category,
                     'priority': result.get('priority', 'Medium'),
                     'sentiment': result.get('sentiment', 'Neutral'),
                     'action_required': result.get('action_required', 'Review and respond')
                 }
             else:
                 # Fallback if JSON parsing fails
+                category, _ = property_categories.find_best_category(email_content)
                 return {
                     'summary': content[:200] + '...' if len(content) > 200 else content,
-                    'category': 'General Inquiry',
+                    'category': category,
                     'priority': 'Medium',
                     'sentiment': 'Neutral',
                     'action_required': 'Review and respond'
@@ -80,9 +95,11 @@ class LLMService:
         except Exception as e:
             print(f"Error processing email with LLM: {e}")
             # Return default values if LLM processing fails
+            email_content = f"{email.get('subject', '')} {email.get('body', '')}"
+            category, _ = property_categories.find_best_category(email_content)
             return {
-                'summary': f"Email from {email['sender']['name']}: {email['subject']}",
-                'category': 'General Inquiry',
+                'summary': f"Email from {email.get('sender', {}).get('name', 'Unknown')}: {email.get('subject', 'No Subject')}",
+                'category': category,
                 'priority': 'Medium',
                 'sentiment': 'Neutral',
                 'action_required': 'Review and respond'

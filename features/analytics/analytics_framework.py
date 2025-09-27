@@ -391,6 +391,8 @@ class DataAggregator:
             'avg_resolution_time_minutes': 0,
             'escalation_rate_percent': 0,
             'avg_satisfaction_score': 0,
+            'services': {},
+            'total_records': 0,
             'period': {
                 'start': datetime.now(timezone.utc).isoformat(),
                 'end': datetime.now(timezone.utc).isoformat()

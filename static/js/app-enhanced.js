@@ -1,6 +1,14 @@
 // HandyConnect Frontend JavaScript - Enhanced Version
 // Advanced functionality for the task management interface
 
+// Global variables for pagination and state management
+let currentPage = 1;
+let itemsPerPage = 10;
+let totalTasks = 0;
+let filteredTasks = [];
+let selectedTasks = new Set();
+let currentTaskId = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('HandyConnect frontend loaded');
     
@@ -9,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFilters();
     initializeRealTimeUpdates();
     initializeModals();
+    initializePagination();
+    initializeBulkOperations();
 });
 
 // ==================== TASK MANAGEMENT ====================
@@ -135,21 +145,39 @@ async function updateTaskStatus(taskId, newStatus) {
 
 async function viewTask(taskId) {
     try {
-        showLoadingIndicator();
+        currentTaskId = taskId;
+        
+        // Show modal first
+        const modal = new bootstrap.Modal(document.getElementById('taskModal'));
+        modal.show();
+        
+        // Show loading state in the task-info section only
+        const taskInfo = document.getElementById('task-info');
+        if (taskInfo) {
+            taskInfo.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+        }
         
         const response = await fetch(`/api/tasks/${taskId}`);
         const result = await response.json();
         
         if (result && result.status === 'success') {
-            displayTaskModal(result.data);
+            // Wait a bit for the modal to be fully rendered
+            setTimeout(() => {
+                displayTaskDetails(result.data);
+            }, 100);
         } else {
             showNotification('Failed to load task details', 'error');
+            if (taskInfo) {
+                taskInfo.innerHTML = '<div class="alert alert-danger">Failed to load task details</div>';
+            }
         }
     } catch (error) {
         console.error('Error loading task:', error);
         showNotification('Error loading task details', 'error');
-    } finally {
-        hideLoadingIndicator();
+        const taskInfo = document.getElementById('task-info');
+        if (taskInfo) {
+            taskInfo.innerHTML = '<div class="alert alert-danger">Error loading task details</div>';
+        }
     }
 }
 
@@ -841,4 +869,500 @@ function sortTasks(sortBy) {
     rows.forEach(row => tbody.appendChild(row));
     
     showNotification(`Tasks sorted by ${sortBy}`, 'info');
+}
+
+// ==================== PAGINATION ====================
+
+function initializePagination() {
+    console.log('Pagination initialized');
+    totalTasks = document.querySelectorAll('#tasks-table-body tr').length;
+    updatePaginationDisplay();
+}
+
+function changePage(direction) {
+    const totalPages = Math.ceil(totalTasks / itemsPerPage);
+    
+    if (direction === 'first') {
+        currentPage = 1;
+    } else if (direction === 'last') {
+        currentPage = totalPages;
+    } else if (direction === 'prev' && currentPage > 1) {
+        currentPage--;
+    } else if (direction === 'next' && currentPage < totalPages) {
+        currentPage++;
+    } else if (typeof direction === 'number') {
+        currentPage = direction;
+    }
+    
+    updatePaginationDisplay();
+    renderCurrentPage();
+}
+
+function updatePaginationDisplay() {
+    const totalPages = Math.ceil(totalTasks / itemsPerPage);
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
+    const endItem = Math.min(currentPage * itemsPerPage, totalTasks);
+    
+    // Update pagination info
+    document.getElementById('showing-start').textContent = startItem;
+    document.getElementById('showing-end').textContent = endItem;
+    document.getElementById('total-tasks-count').textContent = totalTasks;
+    
+    // Update pagination controls
+    const paginationControls = document.getElementById('pagination-controls');
+    if (paginationControls) {
+        updatePaginationButtons(totalPages);
+    }
+}
+
+function updatePaginationButtons(totalPages) {
+    const paginationControls = document.getElementById('pagination-controls');
+    if (!paginationControls) return;
+    
+    let paginationHTML = `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage('first')">
+                <i class="bi bi-chevron-double-left"></i>
+            </a>
+        </li>
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage('prev')">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+    `;
+    
+    // Add page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    paginationHTML += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage('next')">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage('last')">
+                <i class="bi bi-chevron-double-right"></i>
+            </a>
+        </li>
+    `;
+    
+    paginationControls.innerHTML = paginationHTML;
+}
+
+function renderCurrentPage() {
+    const tbody = document.getElementById('tasks-table-body');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    // Hide all rows
+    rows.forEach(row => row.style.display = 'none');
+    
+    // Show only rows for current page
+    for (let i = startIndex; i < Math.min(endIndex, rows.length); i++) {
+        if (rows[i]) {
+            rows[i].style.display = '';
+        }
+    }
+}
+
+// ==================== BULK OPERATIONS ====================
+
+function initializeBulkOperations() {
+    console.log('Bulk operations initialized');
+    
+    // Add event listener for bulk operation selection
+    const bulkOperationSelect = document.getElementById('bulk-operation');
+    if (bulkOperationSelect) {
+        bulkOperationSelect.addEventListener('change', updateBulkOperationUI);
+    }
+}
+
+function updateBulkOperationUI() {
+    const operation = document.getElementById('bulk-operation').value;
+    const container = document.getElementById('bulk-value-container');
+    
+    let html = '';
+    
+    switch (operation) {
+        case 'status':
+            html = `
+                <label class="form-label">New Status</label>
+                <select class="form-select" id="bulk-value">
+                    <option value="New">New</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="On Hold">On Hold</option>
+                </select>
+            `;
+            break;
+        case 'priority':
+            html = `
+                <label class="form-label">New Priority</label>
+                <select class="form-select" id="bulk-value">
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Urgent">Urgent</option>
+                </select>
+            `;
+            break;
+        case 'category':
+            html = `
+                <label class="form-label">New Category</label>
+                <select class="form-select" id="bulk-value">
+                    <option value="Technical Issue">Technical Issue</option>
+                    <option value="Billing Question">Billing Question</option>
+                    <option value="Feature Request">Feature Request</option>
+                    <option value="Complaint">Complaint</option>
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Account Issue">Account Issue</option>
+                </select>
+            `;
+            break;
+        case 'assign':
+            html = `
+                <label class="form-label">Assign To</label>
+                <input type="text" class="form-control" id="bulk-value" placeholder="Enter assignee name">
+            `;
+            break;
+        case 'delete':
+            html = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    This will permanently delete the selected tasks. This action cannot be undone.
+                </div>
+            `;
+            break;
+    }
+    
+    container.innerHTML = html;
+}
+
+function bulkUpdateStatus() {
+    const selected = getSelectedTasks();
+    if (selected.length === 0) {
+        showNotification('Please select tasks to update', 'warning');
+        return;
+    }
+    
+    document.getElementById('bulk-operation').value = 'status';
+    updateBulkOperationUI();
+    document.getElementById('bulk-count').textContent = selected.length;
+    
+    const modal = new bootstrap.Modal(document.getElementById('bulkModal'));
+    modal.show();
+}
+
+function bulkUpdatePriority() {
+    const selected = getSelectedTasks();
+    if (selected.length === 0) {
+        showNotification('Please select tasks to update', 'warning');
+        return;
+    }
+    
+    document.getElementById('bulk-operation').value = 'priority';
+    updateBulkOperationUI();
+    document.getElementById('bulk-count').textContent = selected.length;
+    
+    const modal = new bootstrap.Modal(document.getElementById('bulkModal'));
+    modal.show();
+}
+
+function executeBulkOperation() {
+    const operation = document.getElementById('bulk-operation').value;
+    const value = document.getElementById('bulk-value') ? document.getElementById('bulk-value').value : null;
+    const selected = getSelectedTasks();
+    
+    if (selected.length === 0) {
+        showNotification('No tasks selected', 'warning');
+        return;
+    }
+    
+    if (operation !== 'delete' && !value) {
+        showNotification('Please provide a value for the operation', 'warning');
+        return;
+    }
+    
+    showLoadingIndicator();
+    
+    const promises = selected.map(taskId => {
+        if (operation === 'delete') {
+            return fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+        } else {
+            const updateData = {};
+            updateData[operation] = value;
+            return fetch(`/api/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            });
+        }
+    });
+    
+    Promise.all(promises)
+        .then(results => {
+            const successCount = results.filter(response => response.ok).length;
+            showNotification(`Successfully updated ${successCount} of ${selected.length} tasks`, 'success');
+            
+            // Close modal and refresh
+            const modal = bootstrap.Modal.getInstance(document.getElementById('bulkModal'));
+            modal.hide();
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        })
+        .catch(error => {
+            console.error('Bulk operation error:', error);
+            showNotification('Error performing bulk operation', 'error');
+        })
+        .finally(() => {
+            hideLoadingIndicator();
+        });
+}
+
+// ==================== ENHANCED TASK MANAGEMENT ====================
+
+// Removed duplicate viewTask function - using the async version above
+
+// Removed loadTaskDetails function - functionality moved to viewTask
+
+function displayTaskDetails(task, retryCount = 0) {
+    console.log('displayTaskDetails called with task:', task, 'retry:', retryCount);
+    
+    try {
+        // Check if elements exist
+        const modalTaskId = document.getElementById('modal-task-id');
+        const taskInfo = document.getElementById('task-info');
+        const taskContent = document.getElementById('task-content');
+        const taskNotes = document.getElementById('task-notes');
+        const threadInfo = document.getElementById('thread-info');
+        
+        console.log('Elements found:', {
+            modalTaskId: !!modalTaskId,
+            taskInfo: !!taskInfo,
+            taskContent: !!taskContent,
+            taskNotes: !!taskNotes,
+            threadInfo: !!threadInfo
+        });
+        
+        // If elements are not found, wait a bit and try again (max 5 retries)
+        if ((!modalTaskId || !taskInfo || !taskContent || !taskNotes || !threadInfo) && retryCount < 5) {
+            console.log('Some elements not found, retrying in 200ms... (attempt', retryCount + 1, 'of 5)');
+            setTimeout(() => {
+                displayTaskDetails(task, retryCount + 1);
+            }, 200);
+            return;
+        }
+        
+        // If still not found after retries, show error
+        if (!modalTaskId || !taskInfo || !taskContent || !taskNotes || !threadInfo) {
+            throw new Error('Modal elements not found after 5 retries');
+        }
+        
+        modalTaskId.textContent = `#${task.id}`;
+        
+        // Task info
+        taskInfo.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Subject</h6>
+                <p>${task.subject || 'N/A'}</p>
+                
+                <h6>Sender</h6>
+                <p>${task.sender || 'N/A'} <br><small class="text-muted">${task.sender_email || 'N/A'}</small></p>
+                
+                <h6>Summary</h6>
+                <p>${task.summary || 'No summary available'}</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Created</h6>
+                <p>${task.created_at ? new Date(task.created_at).toLocaleString() : 'N/A'}</p>
+                
+                <h6>Updated</h6>
+                <p>${task.updated_at ? new Date(task.updated_at).toLocaleString() : 'N/A'}</p>
+                
+                <h6>Assigned To</h6>
+                <p>${task.assigned_to || 'Unassigned'}</p>
+            </div>
+        </div>
+    `;
+    
+    // Email content
+    taskContent.innerHTML = `
+        <div class="email-content">
+            ${task.content ? task.content.replace(/\n/g, '<br>') : 'No content available'}
+        </div>
+    `;
+    
+    // Notes
+    taskNotes.innerHTML = `
+        ${task.notes ? `<div class="note-item">${task.notes.replace(/\n/g, '<br>')}</div>` : '<p class="text-muted">No notes yet</p>'}
+    `;
+    
+    // Thread info
+    if (task.thread_info) {
+        threadInfo.innerHTML = `
+            <div class="thread-details">
+                <h6>Thread ID</h6>
+                <p>${task.thread_info.thread_id || 'N/A'}</p>
+                
+                <h6>Thread Status</h6>
+                <p><span class="badge bg-secondary">${task.thread_info.thread_status || 'N/A'}</span></p>
+                
+                <h6>Email Count</h6>
+                <p>${task.thread_info.email_count || 0}</p>
+            </div>
+        `;
+    }
+    
+    // Set form values
+    const statusSelect = document.getElementById('modal-status-select');
+    const prioritySelect = document.getElementById('modal-priority-select');
+    const assignedToInput = document.getElementById('modal-assigned-to');
+    const categorySelect = document.getElementById('modal-category-select');
+    
+    if (statusSelect) statusSelect.value = task.status || 'New';
+    if (prioritySelect) prioritySelect.value = task.priority || 'Medium';
+    if (assignedToInput) assignedToInput.value = task.assigned_to || '';
+    if (categorySelect) categorySelect.value = task.category || 'General Inquiry';
+    
+    } catch (error) {
+        console.error('Error in displayTaskDetails:', error);
+        document.getElementById('taskModalBody').innerHTML = `
+            <div class="alert alert-danger">
+                <h5>Error loading task details</h5>
+                <p>There was an error displaying the task information.</p>
+                <small>Error: ${error.message}</small>
+            </div>
+        `;
+    }
+}
+
+function saveTaskChanges() {
+    if (!currentTaskId) return;
+    
+    const updateData = {
+        status: document.getElementById('modal-status-select').value,
+        priority: document.getElementById('modal-priority-select').value,
+        assigned_to: document.getElementById('modal-assigned-to').value,
+        category: document.getElementById('modal-category-select').value
+    };
+    
+    showLoadingIndicator();
+    
+    fetch(`/api/tasks/${currentTaskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showNotification('Task updated successfully', 'success');
+            // Close modal and refresh
+            const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
+            modal.hide();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification('Error updating task', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating task:', error);
+        showNotification('Error updating task', 'error');
+    })
+    .finally(() => {
+        hideLoadingIndicator();
+    });
+}
+
+function addNote() {
+    const noteText = document.getElementById('new-note').value.trim();
+    if (!noteText || !currentTaskId) return;
+    
+    showLoadingIndicator();
+    
+    fetch(`/api/tasks/${currentTaskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: noteText })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showNotification('Note added successfully', 'success');
+            document.getElementById('new-note').value = '';
+            // Reload task details
+            loadTaskDetails(currentTaskId);
+        } else {
+            showNotification('Error adding note', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding note:', error);
+        showNotification('Error adding note', 'error');
+    })
+    .finally(() => {
+        hideLoadingIndicator();
+    });
+}
+
+function deleteTaskFromModal() {
+    if (!currentTaskId) return;
+    
+    if (confirm('Are you sure you want to delete this task?')) {
+        deleteTask(currentTaskId);
+        const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
+        modal.hide();
+    }
+}
+
+// ==================== UTILITY FUNCTIONS ====================
+
+function clearSelection() {
+    selectedTasks.clear();
+    document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    document.getElementById('select-all-tasks').checked = false;
+    updateSelectedCount();
+    document.getElementById('bulk-operations').style.display = 'none';
+}
+
+function updateSelectedCount() {
+    const selected = getSelectedTasks();
+    selectedTasks = new Set(selected);
+    
+    document.getElementById('selected-count').textContent = `${selected.length} tasks selected`;
+    
+    const bulkOperations = document.getElementById('bulk-operations');
+    if (bulkOperations) {
+        bulkOperations.style.display = selected.length > 0 ? 'block' : 'none';
+    }
+}
+
+function toggleAllTasks() {
+    const selectAll = document.getElementById('select-all-tasks');
+    const checkboxes = document.querySelectorAll('.task-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateSelectedCount();
 }

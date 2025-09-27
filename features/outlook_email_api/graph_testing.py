@@ -10,9 +10,9 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from email_service import EmailService
-from llm_service import LLMService
-from task_service import TaskService
+from features.core_services.email_service import EmailService
+from features.core_services.llm_service import LLMService
+from features.core_services.task_service import TaskService
 
 # Create blueprint for Graph API testing
 graph_test_bp = Blueprint('graph_test', __name__)
@@ -32,7 +32,7 @@ def test_graph_authentication():
                     "token_acquired": True,
                     "token_type": "Bearer",
                     "expires_in": 3600,
-                    "scope": email_service.scope
+                    "scope": " ".join(email_service.scopes)
                 }
             })
         else:
@@ -330,10 +330,21 @@ def test_configuration():
         configured_count = sum(1 for status in config_status.values() if status.startswith("✅"))
         total_count = len(config_status)
         
+        # Check service status
+        services_status = {
+            "email_service": "✅ Available" if os.getenv('CLIENT_ID') else "❌ Not configured",
+            "llm_service": "✅ Available" if os.getenv('OPENAI_API_KEY') else "❌ Not configured",
+            "task_service": "✅ Available",
+            "analytics_service": "✅ Available"
+        }
+        
         return jsonify({
             "status": "success",
             "message": f"Configuration check complete ({configured_count}/{total_count} configured)",
-            "data": config_status
+            "data": {
+                "environment_variables": config_status,
+                "services": services_status
+            }
         })
         
     except Exception as e:

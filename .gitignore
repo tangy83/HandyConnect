@@ -171,4 +171,4 @@ logs/
 ssl/
 
 # Docker
-.dockerignore
+.dockerignore.token_cache.bin

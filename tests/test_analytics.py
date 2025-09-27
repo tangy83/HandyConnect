@@ -90,8 +90,12 @@ class TestDataPersistence(unittest.TestCase):
         """Test backup creation"""
         tasks = [TaskSchema(subject="Test Task", content="Test Content")]
         
-        # Save tasks (should create backup)
+        # First save (no backup created since file doesn't exist yet)
         self.persistence.save_tasks(tasks)
+        
+        # Second save (should create backup since file now exists)
+        tasks2 = [TaskSchema(subject="Test Task 2", content="Test Content 2")]
+        self.persistence.save_tasks(tasks2)
         
         # Check if backup was created
         backup_files = list(self.persistence.backup_dir.glob("*.json"))

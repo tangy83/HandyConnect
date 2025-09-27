@@ -22,16 +22,18 @@ class TestEmailIntegrationDiagnosis(AdvancedTestBase):
     @pytest.mark.diagnosis
     def test_authentication_flow_diagnosis(self):
         """Diagnose authentication flow issues"""
-        from email_service import EmailService
+        from features.core_services.email_service import EmailService
         
         service = EmailService()
         
         # Test 1: Check if credentials are properly loaded
         assert service.client_id is not None, "CLIENT_ID not loaded from environment"
-        assert service.client_secret is not None, "CLIENT_SECRET not loaded from environment"
-        assert service.tenant_id is not None, "TENANT_ID not loaded from environment"
+        assert service.authority is not None, "AUTHORITY not loaded from environment"
+        assert service.scopes is not None, "SCOPES not loaded from environment"
         
         print(f"✅ Credentials loaded: CLIENT_ID={service.client_id[:8]}...")
+        print(f"✅ Authority: {service.authority}")
+        print(f"✅ Scopes: {service.scopes}")
         
         # Test 2: Check authentication method
         token = service.get_access_token()
@@ -41,16 +43,16 @@ class TestEmailIntegrationDiagnosis(AdvancedTestBase):
         
         # Test 3: Identify the authentication flow type
         print("🔍 Authentication Flow Analysis:")
-        print(f"   - Using Client Credentials Flow: ✅")
-        print(f"   - Scope: {service.scope}")
-        print(f"   - This provides APPLICATION permissions, not USER permissions")
+        print(f"   - Using Device Flow Authentication: ✅")
+        print(f"   - Scopes: {', '.join(service.scopes)}")
+        print(f"   - This provides DELEGATED permissions for user access")
     
     @pytest.mark.integration
     @pytest.mark.email
     @pytest.mark.diagnosis
     def test_endpoint_compatibility_diagnosis(self):
         """Diagnose endpoint compatibility with current auth flow"""
-        from email_service import EmailService
+        from features.core_services.email_service import EmailService
         
         service = EmailService()
         
@@ -88,7 +90,7 @@ class TestEmailIntegrationDiagnosis(AdvancedTestBase):
     @pytest.mark.solution
     def test_solution_verification(self):
         """Test potential solutions"""
-        from email_service import EmailService
+        from features.core_services.email_service import EmailService
         
         service = EmailService()
         
@@ -120,7 +122,7 @@ class TestEmailIntegrationSolutions(AdvancedTestBase):
     @pytest.mark.solution
     def test_shared_mailbox_solution(self):
         """Test shared mailbox solution"""
-        from email_service import EmailService
+        from features.core_services.email_service import EmailService
         
         # Create modified service for testing
         service = EmailService()

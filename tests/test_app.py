@@ -242,10 +242,8 @@ class TestHandyConnectApp(unittest.TestCase):
     
     @patch.dict(os.environ, {
         'CLIENT_ID': 'test_client_id',
-        'CLIENT_SECRET': 'test_client_secret',
-        'TENANT_ID': 'test_tenant_id'
-        # Missing OPENAI_API_KEY
-    })
+        'OPENAI_API_KEY': ''  # Explicitly set to empty
+    }, clear=True)
     def test_validate_config_failure(self):
         """Test configuration validation with missing environment variables"""
         self.assertFalse(validate_config())

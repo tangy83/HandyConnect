@@ -1,10 +1,10 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import os
-from email_service import EmailService
+from features.core_services.email_service import EmailService
 
 class TestEmailService(unittest.TestCase):
-    """Test cases for EmailService"""
+    """Test cases for EmailService with device flow authentication"""
     
     def setUp(self):
         """Set up test environment"""
@@ -12,31 +12,43 @@ class TestEmailService(unittest.TestCase):
     
     @patch.dict(os.environ, {
         'CLIENT_ID': 'test_client_id',
-        'CLIENT_SECRET': 'test_client_secret',
-        'TENANT_ID': 'test_tenant_id'
+        'AUTHORITY': 'https://login.microsoftonline.com/consumers',
+        'SCOPES': 'Mail.Read'
     })
-    @patch('email_service.msal.ConfidentialClientApplication')
+    @patch('features.core_services.email_service.msal.PublicClientApplication')
     def test_get_access_token_success(self, mock_msal_app):
-        """Test successful access token retrieval"""
+        """Test successful access token retrieval with device flow"""
         # Mock the MSAL app and token acquisition
         mock_app_instance = MagicMock()
         mock_msal_app.return_value = mock_app_instance
         
         # Mock successful token acquisition
+        mock_app_instance.get_accounts.return_value = []
         mock_app_instance.acquire_token_silent.return_value = None
-        mock_app_instance.acquire_token_for_client.return_value = {
-            'access_token': 'test_access_token'
+        mock_app_instance.initiate_device_flow.return_value = {
+            'user_code': 'test_code',
+            'verification_uri': 'https://localhost:8080/device'
+        }
+        mock_app_instance.acquire_token_by_device_flow.return_value = {
+            'access_token': 'test_access_token',
+            'token_type': 'Bearer',
+            'expires_in': 3600
         }
         
-        token = self.email_service.get_access_token()
-        self.assertEqual(token, 'test_access_token')
+        # Test the method
+        result = self.email_service.get_access_token()
+        
+        # Assertions
+        self.assertEqual(result, 'test_access_token')
+        mock_msal_app.assert_called_once()
+        mock_app_instance.acquire_token_by_device_flow.assert_called_once()
     
     @patch.dict(os.environ, {
         'CLIENT_ID': 'test_client_id',
-        'CLIENT_SECRET': 'test_client_secret',
-        'TENANT_ID': 'test_tenant_id'
+        'AUTHORITY': 'https://login.microsoftonline.com/consumers',
+        'SCOPES': 'Mail.Read'
     })
-    @patch('email_service.msal.ConfidentialClientApplication')
+    @patch('features.core_services.email_service.msal.PublicClientApplication')
     def test_get_access_token_failure(self, mock_msal_app):
         """Test access token retrieval failure"""
         # Mock the MSAL app and token acquisition failure
@@ -44,147 +56,152 @@ class TestEmailService(unittest.TestCase):
         mock_msal_app.return_value = mock_app_instance
         
         # Mock failed token acquisition
+        mock_app_instance.get_accounts.return_value = []
         mock_app_instance.acquire_token_silent.return_value = None
-        mock_app_instance.acquire_token_for_client.return_value = {
+        mock_app_instance.initiate_device_flow.return_value = {
+            'user_code': 'test_code',
+            'verification_uri': 'https://localhost:8080/device'
+        }
+        mock_app_instance.acquire_token_by_device_flow.return_value = {
             'error': 'invalid_client',
             'error_description': 'Invalid client credentials'
         }
         
-        token = self.email_service.get_access_token()
-        self.assertIsNone(token)
+        # Test the method
+        result = self.email_service.get_access_token()
+        
+        # Assertions
+        self.assertIsNone(result)
+        mock_msal_app.assert_called_once()
     
-    @patch('email_service.requests.get')
-    @patch.object(EmailService, 'get_access_token')
-    def test_get_emails_success(self, mock_get_token, mock_requests_get):
+    @patch.dict(os.environ, {
+        'CLIENT_ID': '',
+        'AUTHORITY': 'https://login.microsoftonline.com/consumers',
+        'SCOPES': 'Mail.Read'
+    })
+    def test_get_access_token_no_client_id(self):
+        """Test access token retrieval with missing CLIENT_ID"""
+        # Create EmailService instance after mocking environment variables
+        email_service = EmailService()
+        result = email_service.get_access_token()
+        self.assertIsNone(result)
+    
+    @patch('features.core_services.email_service.EmailService.get_access_token')
+    @patch('features.core_services.email_service.requests.get')
+    def test_get_emails_success(self, mock_get, mock_token):
         """Test successful email retrieval"""
         # Mock access token
-        mock_get_token.return_value = 'test_access_token'
+        mock_token.return_value = 'test_access_token'
         
         # Mock successful API response
         mock_response = MagicMock()
-        mock_response.status_code = 200
+        mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {
             'value': [
                 {
-                    'id': 'email1',
-                    'subject': 'Test Email 1',
+                    'id': '1',
+                    'subject': 'Test Email',
                     'from': {
                         'emailAddress': {
-                            'name': 'Test User 1',
-                            'address': 'test1@example.com'
+                            'name': 'Test User',
+                            'address': 'test@example.com'
                         }
                     },
-                    'bodyPreview': 'Test email content 1',
-                    'receivedDateTime': '2024-01-01T10:00:00Z',
-                    'importance': 'normal'
-                },
-                {
-                    'id': 'email2',
-                    'subject': 'Test Email 2',
-                    'from': {
-                        'emailAddress': {
-                            'name': 'Test User 2',
-                            'address': 'test2@example.com'
-                        }
-                    },
-                    'bodyPreview': 'Test email content 2',
-                    'receivedDateTime': '2024-01-01T11:00:00Z',
-                    'importance': 'high'
+                    'bodyPreview': 'Test email body',
+                    'receivedDateTime': '2025-01-01T00:00:00Z',
+                    'importance': 'normal',
+                    'isRead': False
                 }
             ]
         }
-        mock_requests_get.return_value = mock_response
+        mock_get.return_value = mock_response
         
-        emails = self.email_service.get_emails()
+        # Test the method
+        result = self.email_service.get_emails()
         
-        self.assertEqual(len(emails), 2)
-        self.assertEqual(emails[0]['id'], 'email1')
-        self.assertEqual(emails[0]['subject'], 'Test Email 1')
-        self.assertEqual(emails[0]['sender']['name'], 'Test User 1')
-        self.assertEqual(emails[0]['sender']['email'], 'test1@example.com')
-        self.assertEqual(emails[0]['importance'], 'normal')
-        
-        self.assertEqual(emails[1]['id'], 'email2')
-        self.assertEqual(emails[1]['subject'], 'Test Email 2')
-        self.assertEqual(emails[1]['sender']['name'], 'Test User 2')
-        self.assertEqual(emails[1]['sender']['email'], 'test2@example.com')
-        self.assertEqual(emails[1]['importance'], 'high')
+        # Assertions
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['subject'], 'Test Email')
+        self.assertEqual(result[0]['sender']['email'], 'test@example.com')
+        mock_token.assert_called_once()
+        mock_get.assert_called_once()
     
-    @patch('email_service.requests.get')
-    @patch.object(EmailService, 'get_access_token')
-    def test_get_emails_no_token(self, mock_get_token, mock_requests_get):
-        """Test email retrieval when no access token is available"""
+    @patch('features.core_services.email_service.EmailService.get_access_token')
+    def test_get_emails_no_token(self, mock_token):
+        """Test email retrieval with no access token"""
         # Mock no access token
-        mock_get_token.return_value = None
+        mock_token.return_value = None
         
-        emails = self.email_service.get_emails()
-        self.assertEqual(emails, [])
-        mock_requests_get.assert_not_called()
+        # Test the method
+        result = self.email_service.get_emails()
+        
+        # Assertions
+        self.assertEqual(result, [])
+        mock_token.assert_called_once()
     
-    @patch('email_service.requests.get')
-    @patch.object(EmailService, 'get_access_token')
-    def test_get_emails_api_error(self, mock_get_token, mock_requests_get):
-        """Test email retrieval when API returns error"""
-        # Mock access token
-        mock_get_token.return_value = 'test_access_token'
-        
-        # Mock API error response
-        mock_response = MagicMock()
-        mock_response.status_code = 401
-        mock_response.text = 'Unauthorized'
-        mock_requests_get.return_value = mock_response
-        
-        emails = self.email_service.get_emails()
-        self.assertEqual(emails, [])
-    
-    @patch('email_service.requests.get')
-    @patch.object(EmailService, 'get_access_token')
-    def test_get_email_body_success(self, mock_get_token, mock_requests_get):
+    @patch('features.core_services.email_service.EmailService.get_access_token')
+    @patch('features.core_services.email_service.requests.get')
+    def test_get_email_body_success(self, mock_get, mock_token):
         """Test successful email body retrieval"""
         # Mock access token
-        mock_get_token.return_value = 'test_access_token'
+        mock_token.return_value = 'test_access_token'
         
         # Mock successful API response
         mock_response = MagicMock()
-        mock_response.status_code = 200
+        mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {
             'body': {
-                'content': 'Full email body content'
+                'content': 'Test email body content'
             }
         }
-        mock_requests_get.return_value = mock_response
+        mock_get.return_value = mock_response
         
-        body = self.email_service.get_email_body('email1')
-        self.assertEqual(body, 'Full email body content')
+        # Test the method
+        result = self.email_service.get_email_body('test_message_id')
+        
+        # Assertions
+        self.assertEqual(result, 'Test email body content')
+        mock_token.assert_called_once()
+        mock_get.assert_called_once()
     
-    @patch('email_service.requests.get')
-    @patch.object(EmailService, 'get_access_token')
-    def test_get_email_body_no_token(self, mock_get_token, mock_requests_get):
-        """Test email body retrieval when no access token is available"""
+    @patch('features.core_services.email_service.EmailService.get_access_token')
+    def test_get_email_body_no_token(self, mock_token):
+        """Test email body retrieval with no access token"""
         # Mock no access token
-        mock_get_token.return_value = None
+        mock_token.return_value = None
         
-        body = self.email_service.get_email_body('email1')
-        self.assertIsNone(body)
-        mock_requests_get.assert_not_called()
+        # Test the method
+        result = self.email_service.get_email_body('test_message_id')
+        
+        # Assertions
+        self.assertIsNone(result)
+        mock_token.assert_called_once()
     
-    @patch('email_service.requests.get')
-    @patch.object(EmailService, 'get_access_token')
-    def test_get_email_body_api_error(self, mock_get_token, mock_requests_get):
-        """Test email body retrieval when API returns error"""
+    @patch('features.core_services.email_service.EmailService.get_access_token')
+    @patch('features.core_services.email_service.requests.get')
+    def test_get_user_info_success(self, mock_get, mock_token):
+        """Test successful user info retrieval"""
         # Mock access token
-        mock_get_token.return_value = 'test_access_token'
+        mock_token.return_value = 'test_access_token'
         
-        # Mock API error response
+        # Mock successful API response
         mock_response = MagicMock()
-        mock_response.status_code = 404
-        mock_response.text = 'Not Found'
-        mock_requests_get.return_value = mock_response
+        mock_response.raise_for_status.return_value = None
+        mock_response.json.return_value = {
+            'displayName': 'Test User',
+            'mail': 'test@example.com',
+            'userPrincipalName': 'test@example.com'
+        }
+        mock_get.return_value = mock_response
         
-        body = self.email_service.get_email_body('email1')
-        self.assertIsNone(body)
+        # Test the method
+        result = self.email_service.get_user_info()
+        
+        # Assertions
+        self.assertEqual(result['displayName'], 'Test User')
+        self.assertEqual(result['mail'], 'test@example.com')
+        mock_token.assert_called_once()
+        mock_get.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
-
-

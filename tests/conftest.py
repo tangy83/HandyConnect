@@ -13,7 +13,10 @@ import json
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import app, EmailService, LLMService, TaskService
+from app import app
+from features.core_services.email_service import EmailService
+from features.core_services.llm_service import LLMService
+from features.core_services.task_service import TaskService
 from features.analytics.analytics_framework import AnalyticsFramework, AnalyticsConfig
 from features.analytics.data_persistence import AnalyticsDataPersistence
 from features.analytics.performance_metrics import PerformanceMonitor

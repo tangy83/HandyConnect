@@ -449,14 +449,19 @@ class TestMainAPI:
         assert 'message' in data
     
     @pytest.mark.api
-    def test_graph_auth_test_endpoint(self, test_app):
+    @patch('app.email_service.get_access_token')
+    def test_graph_auth_test_endpoint(self, mock_get_token, test_app):
         """Test graph auth test endpoint"""
+        # Mock successful token acquisition
+        mock_get_token.return_value = "mock_token_12345"
+        
         response = test_app.post('/api/test/graph-auth')
         
-        # This might return 401 if credentials are not properly configured
-        assert response.status_code in [200, 401]
+        # Should return 200 with successful authentication
+        assert response.status_code == 200
         data = json.loads(response.data)
         assert 'status' in data
+        assert data['status'] == 'success'
     
     @pytest.mark.api
     def test_email_access_test_endpoint(self, test_app):
@@ -490,7 +495,7 @@ class TestWebPages:
         
         assert response.status_code == 200
         assert b'HandyConnect' in response.data
-        assert b'Customer Support Task Management' in response.data
+        assert b'Customer Support Task Manager' in response.data
     
     @pytest.mark.e2e
     def test_threads_page(self, test_app):
