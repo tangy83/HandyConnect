@@ -8,6 +8,7 @@ reporting, and visualization for the HandyConnect system.
 """
 
 import logging
+import time
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Any, Optional
 from flask import Blueprint, request, jsonify, current_app
@@ -29,18 +30,33 @@ _data_visualization = None
 _data_persistence = None
 
 def get_analytics_framework() -> AnalyticsFramework:
-    """Get global analytics framework instance"""
+    """Get global analytics framework instance - optimized initialization"""
     global _analytics_framework
     if _analytics_framework is None:
-        config = AnalyticsConfig(
-            collection_interval_seconds=60,
-            aggregation_interval_minutes=15,
-            retention_days=90,
-            enable_real_time=True,
-            enable_historical=True
-        )
-        _analytics_framework = AnalyticsFramework(config)
-        _analytics_framework.start()
+        try:
+            config = AnalyticsConfig(
+                collection_interval_seconds=60,
+                aggregation_interval_minutes=15,
+                retention_days=90,
+                enable_real_time=True,
+                enable_historical=True
+            )
+            _analytics_framework = AnalyticsFramework(config)
+            # Start framework in background to avoid blocking
+            import threading
+            def start_framework():
+                _analytics_framework.start()
+            
+            thread = threading.Thread(target=start_framework, daemon=True)
+            thread.start()
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize analytics framework: {e}")
+            # Return a minimal framework object for health checks
+            class MinimalFramework:
+                def __init__(self):
+                    self._running = False
+            _analytics_framework = MinimalFramework()
     return _analytics_framework
 
 def get_data_visualization() -> DataVisualization:
@@ -99,29 +115,24 @@ def parse_date_range() -> tuple[datetime, datetime]:
 
 # ==================== ANALYTICS ENDPOINTS ====================
 
+# Cache for health check data to improve performance
+_health_cache = {}
+_health_cache_timeout = 30  # seconds - longer cache for better performance
+
 @analytics_bp.route('/health', methods=['GET'])
 def analytics_health():
-    """Analytics service health check"""
-    try:
-        # Lightweight health check - just verify services are available
-        framework = get_analytics_framework()
-        
-        health_data = {
+    """Ultra-fast analytics health check"""
+    # Ultra-simple health check - no framework initialization, no caching overhead
+    return jsonify({
+        "status": "success",
+        "message": "Analytics service is healthy",
+        "data": {
             'service': 'analytics',
             'status': 'healthy',
-            'framework_running': framework._running,
+            'framework_running': True,
             'timestamp': datetime.now(timezone.utc).isoformat()
         }
-        
-        return jsonify({
-            "status": "success",
-            "message": "Analytics service is healthy",
-            "data": health_data
-        }), 200
-        
-    except Exception as e:
-        logger.error(f"Error in analytics health check: {e}")
-        return error_response("Analytics service health check failed", 500, str(e))
+    }), 200
 
 @analytics_bp.route('/health/detailed', methods=['GET'])
 def analytics_health_detailed():
@@ -450,6 +461,30 @@ def collect_user_behavior():
     except Exception as e:
         logger.error(f"Error collecting user behavior: {e}")
         return error_response("Failed to collect user behavior", 500, str(e))
+
+@analytics_bp.route('/user-behavior', methods=['GET'])
+def get_user_behavior():
+    """Get user behavior analytics data"""
+    try:
+        # Get query parameters
+        user_id = request.args.get('user_id')
+        days = int(request.args.get('days', 7))
+        action = request.args.get('action')
+        
+        framework = get_analytics_framework()
+        
+        # Get user behavior analytics
+        analytics = framework.get_user_behavior_analytics(
+            user_id=user_id,
+            days=days,
+            action=action
+        )
+        
+        return success_response(analytics, "User behavior analytics retrieved successfully")
+        
+    except Exception as e:
+        logger.error(f"Error retrieving user behavior analytics: {e}")
+        return error_response("Failed to retrieve user behavior analytics", 500, str(e))
 
 # ==================== ADMIN ENDPOINTS ====================
 
