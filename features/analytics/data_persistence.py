@@ -475,6 +475,42 @@ class AnalyticsDataPersistence:
             
             return [UserBehavior.from_dict(item) for item in all_data]
 
+    def get_user_behavior(self, user_id: str = None, days: int = 7, action: str = None) -> List[Dict[str, Any]]:
+        """Get user behavior data with filtering"""
+        try:
+            # Get all user behavior data
+            behavior_objects = self.load_user_behavior()
+            
+            # Convert to dictionaries for easier processing
+            behavior_data = []
+            for behavior in behavior_objects:
+                behavior_dict = behavior.to_dict()
+                behavior_data.append(behavior_dict)
+            
+            # Filter by user_id if provided
+            if user_id:
+                behavior_data = [item for item in behavior_data if item.get('user_id') == user_id]
+            
+            # Filter by action if provided
+            if action:
+                behavior_data = [item for item in behavior_data if item.get('action') == action]
+            
+            # Filter by days if provided
+            if days:
+                cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+                filtered_data = []
+                for item in behavior_data:
+                    item_date = datetime.fromisoformat(item.get('timestamp', datetime.now(timezone.utc).isoformat()).replace('Z', '+00:00'))
+                    if item_date >= cutoff_date:
+                        filtered_data.append(item)
+                behavior_data = filtered_data
+            
+            return behavior_data
+            
+        except Exception as e:
+            logger.error(f"Error getting user behavior data: {e}")
+            return []
+
     # ==================== UTILITY METHODS ====================
 
     def cleanup_old_data(self) -> int:

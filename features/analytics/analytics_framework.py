@@ -602,6 +602,96 @@ class AnalyticsFramework:
             logger.error(f"Error generating analytics report: {e}")
             return {}
     
+    def get_user_behavior_analytics(self, user_id: str = None, days: int = 7, action: str = None) -> Dict[str, Any]:
+        """Get user behavior analytics"""
+        try:
+            # Get user behavior data from persistence
+            behavior_data = self.persistence.get_user_behavior(
+                user_id=user_id,
+                days=days,
+                action=action
+            )
+            
+            if not behavior_data:
+                return {
+                    'total_actions': 0,
+                    'unique_users': 0,
+                    'top_actions': [],
+                    'user_activity': [],
+                    'session_stats': {},
+                    'page_views': {},
+                    'action_timeline': []
+                }
+            
+            # Process the data
+            total_actions = len(behavior_data)
+            unique_users = len(set(item.get('user_id') for item in behavior_data if item.get('user_id')))
+            
+            # Top actions
+            action_counts = {}
+            for item in behavior_data:
+                action_name = item.get('action', 'unknown')
+                action_counts[action_name] = action_counts.get(action_name, 0) + 1
+            
+            top_actions = sorted(action_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+            
+            # User activity
+            user_activity = {}
+            for item in behavior_data:
+                uid = item.get('user_id', 'unknown')
+                if uid not in user_activity:
+                    user_activity[uid] = 0
+                user_activity[uid] += 1
+            
+            # Session stats
+            session_stats = {
+                'total_sessions': len(set(item.get('session_id') for item in behavior_data if item.get('session_id'))),
+                'avg_actions_per_session': total_actions / max(1, len(set(item.get('session_id') for item in behavior_data if item.get('session_id'))))
+            }
+            
+            # Page views
+            page_views = {}
+            for item in behavior_data:
+                page = item.get('page', 'unknown')
+                page_views[page] = page_views.get(page, 0) + 1
+            
+            # Action timeline (last 24 hours)
+            from datetime import datetime, timedelta
+            now = datetime.now()
+            timeline = []
+            for hour in range(24):
+                hour_start = now - timedelta(hours=hour)
+                hour_end = hour_start + timedelta(hours=1)
+                count = sum(1 for item in behavior_data 
+                           if hour_start <= datetime.fromisoformat(item.get('timestamp', now.isoformat()).replace('Z', '+00:00')).replace(tzinfo=None) <= hour_end)
+                timeline.append({'hour': hour_start.strftime('%H:00'), 'count': count})
+            
+            return {
+                'total_actions': total_actions,
+                'unique_users': unique_users,
+                'top_actions': [{'action': action, 'count': count} for action, count in top_actions],
+                'user_activity': [{'user_id': uid, 'action_count': count} for uid, count in user_activity.items()],
+                'session_stats': session_stats,
+                'page_views': page_views,
+                'action_timeline': timeline,
+                'period_days': days,
+                'filtered_by_user': user_id,
+                'filtered_by_action': action
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting user behavior analytics: {e}")
+            return {
+                'total_actions': 0,
+                'unique_users': 0,
+                'top_actions': [],
+                'user_activity': [],
+                'session_stats': {},
+                'page_views': {},
+                'action_timeline': [],
+                'error': str(e)
+            }
+    
     def cleanup_old_data(self) -> int:
         """Clean up old data"""
         return self.persistence.cleanup_old_data()
