@@ -1,0 +1,965 @@
+/**
+ * HandyConnect Modern Theme
+ * Professional UI/UX styling for clean, modern interface
+ */
+
+/* ============================================
+   1. ROOT VARIABLES & THEME
+   ============================================ */
+:root {
+    /* Color Palette */
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary-color: #64748b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    
+    /* Neutral Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    
+    /* Border & Shadows */
+    --border-color: #e2e8f0;
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* Spacing */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Typography */
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+}
+
+/* ============================================
+   2. GLOBAL RESETS & BASE STYLES
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   3. TYPOGRAPHY
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+h1 { font-size: 2.25rem; font-weight: 700; }
+h2 { font-size: 1.875rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+h5 { font-size: 1.125rem; }
+h6 { font-size: 1rem; }
+
+p {
+    margin-bottom: var(--spacing-md);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* ============================================
+   4. NAVIGATION
+   ============================================ */
+.navbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: var(--shadow-md);
+    padding: 0.75rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: white !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    border-radius: var(--border-radius-sm);
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white !important;
+    transform: translateY(-1px);
+}
+
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white !important;
+}
+
+/* ============================================
+   5. CARDS
+   ============================================ */
+.card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(to right, var(--bg-secondary), var(--bg-primary));
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.card-header h5 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-body {
+    padding: var(--spacing-lg);
+}
+
+/* Stat Cards */
+.card.bg-primary,
+.card.bg-warning,
+.card.bg-info,
+.card.bg-success {
+    border: none;
+    box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, currentColor, color-mix(in srgb, currentColor 80%, black));
+}
+
+.card.bg-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.card.bg-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.card.bg-info { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+.card.bg-success { background: linear-gradient(135deg, #10b981, #059669); }
+
+/* ============================================
+   6. BUTTONS
+   ============================================ */
+.btn {
+    font-weight: 500;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--border-radius-sm);
+    border: none;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-hover), #1e40af);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning-color), #d97706);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   7. TABLES
+   ============================================ */
+.table {
+    background: var(--bg-primary);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.table thead {
+    background: linear-gradient(to right, #f1f5f9, #e2e8f0);
+}
+
+.table thead th {
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: var(--spacing-md);
+    border: none;
+}
+
+.table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background: var(--bg-tertiary);
+    transform: scale(1.01);
+    box-shadow: var(--shadow-sm);
+}
+
+.table tbody td {
+    padding: var(--spacing-md);
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    cursor: pointer;
+}
+
+/* ============================================
+   8. BADGES
+   ============================================ */
+.badge {
+    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8125rem;
+    letter-spacing: 0.025em;
+}
+
+.badge.bg-danger { background: var(--danger-color) !important; }
+.badge.bg-warning { background: var(--warning-color) !important; }
+.badge.bg-info { background: var(--info-color) !important; }
+.badge.bg-success { background: var(--success-color) !important; }
+.badge.bg-secondary { background: var(--secondary-color) !important; }
+
+/* ============================================
+   9. FORMS
+   ============================================ */
+.form-control,
+.form-select {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    transition: all 0.2s ease;
+    background: var(--bg-primary);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   10. MODALS
+   ============================================ */
+.modal-content {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: var(--spacing-lg);
+    border-bottom: none;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 1.375rem;
+}
+
+.modal-body {
+    padding: var(--spacing-xl);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
+}
+
+/* ============================================
+   11. ALERTS
+   ============================================ */
+.alert {
+    border: none;
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-left: 4px solid currentColor;
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border-left-color: var(--success-color);
+}
+
+.alert-danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border-left-color: var(--danger-color);
+}
+
+.alert-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-left-color: var(--warning-color);
+}
+
+.alert-info {
+    background: #cffafe;
+    color: #164e63;
+    border-left-color: var(--info-color);
+}
+
+/* ============================================
+   12. STAT CARDS (Dashboard)
+   ============================================ */
+.stat-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card h4 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-card p {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.stat-card i {
+    opacity: 0.8;
+}
+
+/* ============================================
+   13. TASK TABLE STYLING
+   ============================================ */
+.tasks-table-container {
+    background: white;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.table-responsive {
+    border-radius: var(--border-radius);
+}
+
+.task-row-clickable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.task-row-clickable:hover {
+    background: linear-gradient(to right, #f8fafc, #f1f5f9) !important;
+    box-shadow: inset 4px 0 0 var(--primary-color);
+}
+
+/* ============================================
+   14. FILTERS & SEARCH
+   ============================================ */
+.filter-section {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.filter-section .card-header {
+    background: transparent;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: var(--spacing-md);
+}
+
+/* ============================================
+   15. PAGINATION
+   ============================================ */
+.pagination {
+    gap: 0.5rem;
+}
+
+.page-item .page-link {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 0.5rem 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.page-item .page-link:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.page-item.active .page-link {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   16. THREAD CARDS
+   ============================================ */
+.thread-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.thread-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+    border-left: 4px solid var(--primary-color);
+}
+
+.thread-card.unread {
+    background: linear-gradient(to right, #eff6ff, white);
+    border-left: 4px solid var(--info-color);
+}
+
+.thread-card.urgent {
+    border-left: 4px solid var(--danger-color);
+}
+
+/* ============================================
+   17. STATUS BADGES
+   ============================================ */
+.status-badge-new {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+    font-weight: 600;
+}
+
+.status-badge-inprogress {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    color: white;
+    font-weight: 600;
+}
+
+.status-badge-completed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    font-weight: 600;
+}
+
+.status-badge-onhold {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    font-weight: 600;
+}
+
+/* ============================================
+   18. PRIORITY BADGES
+   ============================================ */
+.priority-urgent {
+    background: var(--danger-color);
+    animation: pulse-urgent 2s infinite;
+}
+
+.priority-high {
+    background: var(--warning-color);
+}
+
+.priority-medium {
+    background: var(--info-color);
+}
+
+.priority-low {
+    background: var(--secondary-color);
+}
+
+@keyframes pulse-urgent {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* ============================================
+   19. ANALYTICS CHARTS
+   ============================================ */
+.chart-container {
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.chart-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* ============================================
+   20. LOADING STATES
+   ============================================ */
+.loading-spinner {
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid rgba(37, 99, 235, 0.2);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   21. FORM CONTAINERS
+   ============================================ */
+.filter-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-container input {
+    padding-left: 2.5rem;
+}
+
+.search-container i {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+/* ============================================
+   22. TASK DETAIL SECTIONS
+   ============================================ */
+.task-detail-section {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.task-detail-section:last-child {
+    border-bottom: none;
+}
+
+.task-detail-section h6 {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 600;
+}
+
+.note-item {
+    background: var(--bg-secondary);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    border-left: 3px solid var(--info-color);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.9375rem;
+}
+
+/* ============================================
+   23. THREAD INFO
+   ============================================ */
+.thread-details {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    border: 1px solid #bae6fd;
+}
+
+.thread-details h6 {
+    color: #0c4a6e;
+    margin-top: var(--spacing-md);
+}
+
+.thread-details h6:first-child {
+    margin-top: 0;
+}
+
+/* ============================================
+   24. BULK ACTIONS
+   ============================================ */
+.bulk-actions-bar {
+    background: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-lg);
+    border: 2px dashed var(--border-color);
+}
+
+.bulk-actions-bar.active {
+    border-color: var(--primary-color);
+    background: linear-gradient(to right, #eff6ff, white);
+}
+
+/* ============================================
+   25. RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    
+    .card-body {
+        padding: var(--spacing-md);
+    }
+    
+    .table {
+        font-size: 0.875rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .stat-card h4 {
+        font-size: 2rem;
+    }
+    
+    .filter-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   26. UTILITIES
+   ============================================ */
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow-md { box-shadow: var(--shadow-md) !important; }
+.shadow-lg { box-shadow: var(--shadow-lg) !important; }
+
+.rounded { border-radius: var(--border-radius) !important; }
+.rounded-sm { border-radius: var(--border-radius-sm) !important; }
+
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ============================================
+   27. PAGE CONTAINER
+   ============================================ */
+.container-fluid {
+    max-width: 1400px;
+    padding: var(--spacing-xl);
+}
+
+.page-header {
+    margin-bottom: var(--spacing-xl);
+}
+
+.page-header h1 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--spacing-sm);
+}
+
+/* ============================================
+   28. ACTION BUTTONS ROW
+   ============================================ */
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.action-buttons .btn {
+    flex-shrink: 0;
+}
+
+/* ============================================
+   29. EMPTY STATES
+   ============================================ */
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl) * 2;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    opacity: 0.3;
+    margin-bottom: var(--spacing-lg);
+}
+
+/* ============================================
+   30. ACCESSIBILITY
+   ============================================ */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Focus states for accessibility */
+*:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   31. SMOOTH TRANSITIONS
+   ============================================ */
+* {
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in-out;
+}
+
+/* ============================================
+   32. TASK PRIORITY VISUAL INDICATORS
+   ============================================ */
+tr[data-priority="Urgent"] {
+    border-left: 3px solid var(--danger-color);
+}
+
+tr[data-priority="High"] {
+    border-left: 3px solid var(--warning-color);
+}
+
+/* ============================================
+   33. ICONS
+   ============================================ */
+.bi {
+    line-height: 1;
+}
+
+/* ============================================
+   34. SCROLLBAR STYLING
+   ============================================ */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* ============================================
+   35. HOVER EFFECTS
+   ============================================ */
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   36. GRADIENT BACKGROUNDS
+   ============================================ */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* ============================================
+   37. MOBILE OPTIMIZATIONS
+   ============================================ */
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: var(--spacing-md);
+    }
+    
+    .card {
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+    
+    .table {
+        font-size: 0.8125rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ============================================
+   38. PRINT STYLES
+   ============================================ */
+@media print {
+    .navbar,
+    .bulk-actions-bar,
+    .pagination,
+    .action-buttons {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
