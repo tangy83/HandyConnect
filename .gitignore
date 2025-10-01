@@ -173,3 +173,4 @@ ssl/
 # Docker
 .dockerignore.token_cache.bin
 .token_cache.bin
+test_report_*.json
