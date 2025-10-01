@@ -60,9 +60,12 @@
                 </button>
             `;
 
-            // Insert before breadcrumbs
-            if (this.breadcrumbs) {
+            // Insert before breadcrumbs (with safety check)
+            if (this.breadcrumbs && this.breadcrumbs.parentNode) {
                 this.breadcrumbs.parentNode.insertBefore(timeRangeContainer, this.breadcrumbs);
+            } else {
+                // Fallback: append to body or skip if container doesn't exist
+                console.warn('Analytics drilldown: breadcrumbs container not found, skipping time range picker');
             }
 
             // Add event listeners
@@ -431,11 +434,22 @@
         }
     };
 
-    // Initialize when DOM is ready
+    // Initialize when DOM is ready (only on analytics pages)
+    const initIfAnalyticsPage = () => {
+        // Only initialize if we're on an analytics page or if analytics elements exist
+        const isAnalyticsPage = window.location.pathname.includes('/analytics') || 
+                               document.querySelector('#analytics-dashboard') ||
+                               document.querySelector('.analytics-container');
+        
+        if (isAnalyticsPage) {
+            AnalyticsDrilldownManager.init();
+        }
+    };
+    
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => AnalyticsDrilldownManager.init());
+        document.addEventListener('DOMContentLoaded', initIfAnalyticsPage);
     } else {
-        AnalyticsDrilldownManager.init();
+        initIfAnalyticsPage();
     }
 
     // Expose globally
