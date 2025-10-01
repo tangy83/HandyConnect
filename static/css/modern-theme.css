@@ -4,17 +4,17 @@
  */
 
 /* ============================================
-   1. ROOT VARIABLES & THEME
+   1. ROOT VARIABLES & THEME - PASTEL PALETTE
    ============================================ */
 :root {
-    /* Color Palette */
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --secondary-color: #64748b;
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --danger-color: #ef4444;
-    --info-color: #06b6d4;
+    /* Pastel Color Palette */
+    --primary-color: #a8b8ff;
+    --primary-hover: #8da2ff;
+    --secondary-color: #b8c5d6;
+    --success-color: #a8e6b8;
+    --warning-color: #ffd4a3;
+    --danger-color: #ffb3b3;
+    --info-color: #a3d9ff;
     
     /* Neutral Colors */
     --bg-primary: #ffffff;
@@ -93,7 +93,7 @@ p {
    4. NAVIGATION
    ============================================ */
 .navbar {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #d4b5ff 0%, #b8a3ff 100%);
     box-shadow: var(--shadow-md);
     padding: 0.75rem 0;
     position: sticky;
@@ -173,10 +173,10 @@ p {
     background: linear-gradient(135deg, currentColor, color-mix(in srgb, currentColor 80%, black));
 }
 
-.card.bg-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.card.bg-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.card.bg-info { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-.card.bg-success { background: linear-gradient(135deg, #10b981, #059669); }
+.card.bg-primary { background: linear-gradient(135deg, #c5d3ff, #a8b8ff); }
+.card.bg-warning { background: linear-gradient(135deg, #ffe4c4, #ffd4a3); }
+.card.bg-info { background: linear-gradient(135deg, #c4e8ff, #a3d9ff); }
+.card.bg-success { background: linear-gradient(135deg, #c4f0cc, #a8e6b8); }
 
 /* ============================================
    6. BUTTONS
@@ -201,24 +201,29 @@ p {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-    color: white;
+    background: linear-gradient(135deg, #c5d3ff, #a8b8ff);
+    color: #4a5568;
+    font-weight: 600;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, var(--primary-hover), #1e40af);
+    background: linear-gradient(135deg, #a8b8ff, #8da2ff);
+    color: #2d3748;
 }
 
 .btn-success {
-    background: linear-gradient(135deg, var(--success-color), #059669);
+    background: linear-gradient(135deg, #c4f0cc, #a8e6b8);
+    color: #2f7a43;
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, var(--warning-color), #d97706);
+    background: linear-gradient(135deg, #ffe4c4, #ffd4a3);
+    color: #9a6b3a;
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+    background: linear-gradient(135deg, #ffc9c9, #ffb3b3);
+    color: #9a3a3a;
 }
 
 .btn-outline-primary {
@@ -334,8 +339,8 @@ p {
 }
 
 .modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #d4b5ff 0%, #c5d3ff 100%);
+    color: #4a5568;
     border-radius: var(--border-radius) var(--border-radius) 0 0;
     padding: var(--spacing-lg);
     border-bottom: none;
@@ -371,26 +376,26 @@ p {
 }
 
 .alert-success {
-    background: #d1fae5;
-    color: #065f46;
+    background: #e8f5e9;
+    color: #2f7a43;
     border-left-color: var(--success-color);
 }
 
 .alert-danger {
-    background: #fee2e2;
-    color: #991b1b;
+    background: #ffe9e9;
+    color: #9a3a3a;
     border-left-color: var(--danger-color);
 }
 
 .alert-warning {
-    background: #fef3c7;
-    color: #92400e;
+    background: #fff5e6;
+    color: #9a6b3a;
     border-left-color: var(--warning-color);
 }
 
 .alert-info {
-    background: #cffafe;
-    color: #164e63;
+    background: #e6f4ff;
+    color: #2d5a7a;
     border-left-color: var(--info-color);
 }
 
@@ -449,7 +454,7 @@ p {
 }
 
 .task-row-clickable:hover {
-    background: linear-gradient(to right, #f8fafc, #f1f5f9) !important;
+    background: linear-gradient(to right, #faf5ff, #f5f0ff) !important;
     box-shadow: inset 4px 0 0 var(--primary-color);
 }
 
@@ -524,7 +529,7 @@ p {
 }
 
 .thread-card.unread {
-    background: linear-gradient(to right, #eff6ff, white);
+    background: linear-gradient(to right, #f0f9ff, white);
     border-left: 4px solid var(--info-color);
 }
 
@@ -536,26 +541,26 @@ p {
    17. STATUS BADGES
    ============================================ */
 .status-badge-new {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    color: white;
+    background: linear-gradient(135deg, #ffe4c4, #ffd4a3);
+    color: #9a6b3a;
     font-weight: 600;
 }
 
 .status-badge-inprogress {
-    background: linear-gradient(135deg, #06b6d4, #0891b2);
-    color: white;
+    background: linear-gradient(135deg, #c4e8ff, #a3d9ff);
+    color: #2d5a7a;
     font-weight: 600;
 }
 
 .status-badge-completed {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
+    background: linear-gradient(135deg, #c4f0cc, #a8e6b8);
+    color: #2f7a43;
     font-weight: 600;
 }
 
 .status-badge-onhold {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-    color: white;
+    background: linear-gradient(135deg, #e4c4ff, #d4b5ff);
+    color: #6a3a9a;
     font-weight: 600;
 }
 
@@ -687,14 +692,14 @@ p {
    23. THREAD INFO
    ============================================ */
 .thread-details {
-    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    background: linear-gradient(135deg, #f5f0ff, #ebe5ff);
     padding: var(--spacing-lg);
     border-radius: var(--border-radius);
-    border: 1px solid #bae6fd;
+    border: 1px solid #d4b5ff;
 }
 
 .thread-details h6 {
-    color: #0c4a6e;
+    color: #6a3a9a;
     margin-top: var(--spacing-md);
 }
 
@@ -716,7 +721,7 @@ p {
 
 .bulk-actions-bar.active {
     border-color: var(--primary-color);
-    background: linear-gradient(to right, #eff6ff, white);
+    background: linear-gradient(to right, #faf5ff, white);
 }
 
 /* ============================================
@@ -759,7 +764,7 @@ p {
 .rounded-sm { border-radius: var(--border-radius-sm) !important; }
 
 .text-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #d4b5ff 0%, #a8b8ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -778,7 +783,7 @@ p {
 }
 
 .page-header h1 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #b8a3ff 0%, #a8b8ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -905,19 +910,19 @@ tr[data-priority="High"] {
    36. GRADIENT BACKGROUNDS
    ============================================ */
 .bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #d4b5ff 0%, #a8b8ff 100%);
 }
 
 .bg-gradient-success {
-    background: linear-gradient(135deg, #10b981, #059669);
+    background: linear-gradient(135deg, #c4f0cc, #a8e6b8);
 }
 
 .bg-gradient-warning {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: linear-gradient(135deg, #ffe4c4, #ffd4a3);
 }
 
 .bg-gradient-danger {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
+    background: linear-gradient(135deg, #ffc9c9, #ffb3b3);
 }
 
 /* ============================================
