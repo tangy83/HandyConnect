@@ -30,13 +30,13 @@ HandyConnect/
 ├── llm_service.py              # OpenAI integration
 ├── task_service.py             # Task management logic
 ├── requirements.txt            # Python dependencies
-├── docs/                       # 📚 Documentation
-│   ├── guides/                 # User guides and tutorials
-│   │   └── README.md           # Detailed project guide
-│   ├── roadmaps/               # Development roadmaps
-│   │   └── ROADMAP.md              # Complete development roadmap
-│   ├── api/                    # API documentation
-│   └── deployment/             # Deployment guides
+├── docs/                       # 📚 Complete Documentation
+│   ├── README.md               # Documentation index
+│   ├── COMPLETE_PROJECT_GUIDE.md  # Comprehensive project guide
+│   ├── QUICK_START_GUIDE.md    # User quick start
+│   ├── ADMINISTRATOR_GUIDE.md  # Admin guide
+│   ├── API_REFERENCE.md        # Complete API docs
+│   └── [4 more guides]         # Testing, Git, Troubleshooting, etc.
 ├── config/                     # ⚙️ Configuration
 │   ├── docker/                 # Docker configurations
 │   │   ├── Dockerfile
@@ -79,28 +79,26 @@ HandyConnect/
 
 ## 📚 Documentation
 
-### 📋 Project Summary
-- **[Project Summary](docs/roadmaps/PROJECT_SUMMARY.md)** - Complete team onboarding and project overview
+**All documentation is now in the [`docs/`](docs/) folder - clean, organized, and comprehensive!**
 
-### 🗺️ Development Roadmap
-- **[Roadmap](docs/roadmaps/ROADMAP.md)** - Complete development guide with developer assignments, timelines, and coordination strategy
+### 🎯 Start Here
+- **[Complete Project Guide](docs/COMPLETE_PROJECT_GUIDE.md)** - Comprehensive guide covering everything about HandyConnect
 
-### 📖 User Guides
-- **[Project Guide](docs/guides/README.md)** - Detailed project documentation
-- **[Git Setup](docs/guides/GIT_SETUP.md)** - Repository workflow and collaboration
-- **[Sanity Check](docs/guides/SANITY_CHECK.md)** - Project completeness verification
-- **[API Documentation](docs/api/)** - API reference and examples
-- **[Deployment Guide](docs/deployment/)** - Deployment instructions
+### 👤 For Users
+- **[Quick Start Guide](docs/QUICK_START_GUIDE.md)** - Get started in 5 minutes
+- **[Troubleshooting](docs/Troubleshooting.md)** - Common issues and solutions
 
-### ⚙️ Configuration
-- **[Docker Setup](config/docker/)** - Container configuration
-- **[Environment Setup](config/environment/)** - Environment variables
-- **[Nginx Setup](config/nginx/)** - Reverse proxy configuration
+### 👨‍💼 For Administrators
+- **[Administrator Guide](docs/ADMINISTRATOR_GUIDE.md)** - System administration and operations
 
-### 🔧 Scripts & Utilities
-- **[Setup Scripts](scripts/setup/)** - Project setup and verification
-- **[Deployment Scripts](scripts/deployment/)** - Deployment automation
-- **[Utilities](scripts/utilities/)** - Development utilities
+### 👨‍💻 For Developers
+- **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation (21+ endpoints)
+- **[Test-Driven Development](docs/TEST_DRIVEN_DEVELOPMENT.md)** - Testing methodology
+- **[Git Setup](docs/GIT_SETUP.md)** - Version control workflow
+- **[Microsoft Graph Testing](docs/MICROSOFT_GRAPH_TESTING.md)** - Email integration testing
+
+### 📖 Full Documentation Index
+See **[docs/README.md](docs/README.md)** for the complete documentation index and navigation guide.
 
 ## 🚀 Features
 

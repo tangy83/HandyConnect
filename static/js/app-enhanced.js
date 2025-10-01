@@ -1,6 +1,30 @@
 // HandyConnect Frontend JavaScript - Enhanced Version
 // Advanced functionality for the task management interface
 
+// Feature Flags Configuration
+const FEATURE_FLAGS = {
+    websockets: true,
+    kanban: true,
+    loaders: true,
+    notifications: true,
+    darkMode: true,
+    keyboardShortcuts: true,
+    inlineEditing: true,
+    wordCloud: true,
+    contextMenu: true,
+    realTimeNotifications: true,
+    residentSidebar: true,
+    analyticsDrilldown: true,
+    exportEnhancements: true,
+    advancedSearch: true,
+    bulkActions: true,
+    mobileCards: true,
+    confirmations: true,
+    customizableDashboard: true,
+    taskTimeline: true,
+    taskTemplates: true
+};
+
 // Global variables for pagination and state management
 let currentPage = 1;
 let itemsPerPage = 10;
@@ -9,16 +33,158 @@ let filteredTasks = [];
 let selectedTasks = new Set();
 let currentTaskId = null;
 
+// API Wrapper with retry logic
+const API = {
+    async request(url, options = {}) {
+        const defaultOptions = {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            ...options
+        };
+
+        let retryCount = 0;
+        const maxRetries = 3;
+        const baseDelay = 1000;
+
+        while (retryCount <= maxRetries) {
+            try {
+                const response = await fetch(url, defaultOptions);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return await response.json();
+                } else {
+                    return await response.text();
+                }
+            } catch (error) {
+                retryCount++;
+                
+                if (retryCount > maxRetries) {
+                    throw new Error(`API request failed after ${maxRetries} retries: ${error.message}`);
+                }
+
+                // Exponential backoff with jitter
+                const delay = baseDelay * Math.pow(2, retryCount - 1) + Math.random() * 1000;
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    },
+
+    async get(url) {
+        return this.request(url, { method: 'GET' });
+    },
+
+    async post(url, data) {
+        return this.request(url, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+
+    async put(url, data) {
+        return this.request(url, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    },
+
+    async delete(url) {
+        return this.request(url, { method: 'DELETE' });
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('HandyConnect frontend loaded');
     
-    // Initialize all frontend functionality
+    // Initialize core functionality
     initializeTaskManagement();
     initializeFilters();
-    initializeRealTimeUpdates();
     initializeModals();
     initializePagination();
     initializeBulkOperations();
+    
+    // Initialize feature-flagged modules
+    if (FEATURE_FLAGS.loaders) {
+        initializeLoaders();
+    }
+    
+    if (FEATURE_FLAGS.notifications) {
+        initializeNotifications();
+    }
+    
+    if (FEATURE_FLAGS.websockets) {
+        initializeWebSockets();
+    }
+    
+    if (FEATURE_FLAGS.darkMode) {
+        initializeDarkMode();
+    }
+    
+    if (FEATURE_FLAGS.keyboardShortcuts) {
+        initializeKeyboardShortcuts();
+    }
+    
+    if (FEATURE_FLAGS.inlineEditing) {
+        initializeInlineEditing();
+    }
+    
+    if (FEATURE_FLAGS.kanban) {
+        initializeKanban();
+    }
+    
+    if (FEATURE_FLAGS.wordCloud) {
+        initializeWordCloud();
+    }
+    
+    if (FEATURE_FLAGS.contextMenu) {
+        initializeContextMenu();
+    }
+    
+    if (FEATURE_FLAGS.advancedSearch) {
+        initializeAdvancedSearch();
+    }
+    
+    if (FEATURE_FLAGS.mobileCards) {
+        initializeMobileCards();
+    }
+    
+    if (FEATURE_FLAGS.confirmations) {
+        initializeConfirmations();
+    }
+    
+    if (FEATURE_FLAGS.customizableDashboard) {
+        initializeCustomizableDashboard();
+    }
+    
+    if (FEATURE_FLAGS.taskTemplates) {
+        initializeTaskTemplates();
+    }
+    
+    if (FEATURE_FLAGS.taskTimeline) {
+        initializeTaskTimeline();
+    }
+    
+    if (FEATURE_FLAGS.residentSidebar) {
+        initializeResidentSidebar();
+    }
+    
+    if (FEATURE_FLAGS.analyticsDrilldown) {
+        initializeAnalyticsDrilldown();
+    }
+    
+    if (FEATURE_FLAGS.exportEnhancements) {
+        initializeExportEnhancements();
+    }
+    
+    if (FEATURE_FLAGS.advancedSearch) {
+        initializeAdvancedSearch();
+    }
 });
 
 // ==================== TASK MANAGEMENT ====================
@@ -1365,4 +1531,644 @@ function toggleAllTasks() {
     });
     
     updateSelectedCount();
+}
+
+// ==================== FEATURE INITIALIZATION FUNCTIONS ====================
+
+function initializeLoaders() {
+    console.log('Loaders initialized');
+    // LoaderManager is already initialized in loaders.js
+}
+
+function initializeNotifications() {
+    console.log('Notifications initialized');
+    // NotificationManager is already initialized in notifications.js
+}
+
+function initializeWebSockets() {
+    console.log('WebSockets initialized');
+    // WebSocketManager is already initialized in websocket.js
+}
+
+function initializeDarkMode() {
+    console.log('Dark mode initialized');
+    
+    // Load saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'system';
+    applyTheme(savedTheme);
+    
+    // Create theme toggle button
+    createThemeToggle();
+    
+    // Listen for system theme changes
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (localStorage.getItem('theme') === 'system') {
+                applyTheme('system');
+            }
+        });
+    }
+}
+
+function applyTheme(theme) {
+    const html = document.documentElement;
+    const themeToggleText = document.getElementById('theme-toggle-text');
+    
+    // Remove existing theme classes
+    html.classList.remove('theme-light', 'theme-dark');
+    
+    let actualTheme = theme;
+    
+    if (theme === 'system') {
+        actualTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    
+    if (actualTheme === 'dark') {
+        html.setAttribute('data-bs-theme', 'dark');
+        html.classList.add('theme-dark');
+        if (themeToggleText) {
+            themeToggleText.textContent = 'Light Mode';
+        }
+    } else {
+        html.setAttribute('data-bs-theme', 'light');
+        html.classList.add('theme-light');
+        if (themeToggleText) {
+            themeToggleText.textContent = 'Dark Mode';
+        }
+    }
+    
+    // Update charts and other components
+    updateChartsTheme(actualTheme);
+}
+
+function createThemeToggle() {
+    // Theme toggle is already in the base template
+    // Just add the click handler
+    window.toggleTheme = function() {
+        const currentTheme = localStorage.getItem('theme') || 'system';
+        let newTheme;
+        
+        switch(currentTheme) {
+            case 'light':
+                newTheme = 'dark';
+                break;
+            case 'dark':
+                newTheme = 'system';
+                break;
+            case 'system':
+            default:
+                newTheme = 'light';
+                break;
+        }
+        
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+        
+        // Show notification
+        showNotification('Theme Changed', `Switched to ${newTheme} mode`, 'info');
+    };
+}
+
+function updateChartsTheme(theme) {
+    // Update Chart.js theme if charts exist
+    if (window.Chart) {
+        Chart.defaults.color = theme === 'dark' ? '#ffffff' : '#666666';
+        Chart.defaults.borderColor = theme === 'dark' ? '#444444' : '#e0e0e0';
+        Chart.defaults.backgroundColor = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    }
+    
+    // Update word cloud colors if it exists
+    if (window.WordCloudManager) {
+        window.WordCloudManager.updateTheme(theme);
+    }
+}
+
+function initializeKeyboardShortcuts() {
+    console.log('Keyboard shortcuts initialized');
+    
+    document.addEventListener('keydown', function(e) {
+        // Help overlay (Shift + /)
+        if (e.shiftKey && e.key === '/') {
+            e.preventDefault();
+            showKeyboardShortcutsHelp();
+        }
+        
+        // New task modal (N)
+        if (e.key === 'n' && !e.ctrlKey && !e.altKey) {
+            e.preventDefault();
+            showNewTaskModal();
+        }
+        
+        // Search focus (Ctrl/Cmd + F)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            focusSearch();
+        }
+        
+        // Navigation shortcuts (G + letter)
+        if (e.key === 'g' && !e.ctrlKey && !e.altKey) {
+            // Wait for next key
+            document.addEventListener('keydown', function navigationHandler(e2) {
+                document.removeEventListener('keydown', navigationHandler);
+                
+                switch(e2.key.toLowerCase()) {
+                    case 'd':
+                        window.location.href = '/';
+                        break;
+                    case 't':
+                        window.location.href = '/threads';
+                        break;
+                    case 'a':
+                        window.location.href = '/analytics';
+                        break;
+                }
+            }, { once: true });
+        }
+    });
+}
+
+function initializeInlineEditing() {
+    console.log('Inline editing initialized');
+    
+    // Add click-to-edit functionality to table cells
+    document.querySelectorAll('.editable-cell').forEach(cell => {
+        cell.addEventListener('click', function() {
+            if (this.dataset.editing !== 'true') {
+                startInlineEdit(this);
+            }
+        });
+    });
+    
+    // Add editable class to appropriate cells
+    makeCellsEditable();
+}
+
+function makeCellsEditable() {
+    // Make task subject cells editable
+    document.querySelectorAll('td:nth-child(2)').forEach(cell => {
+        if (!cell.querySelector('input, select, textarea')) {
+            cell.classList.add('editable-cell');
+            cell.dataset.field = 'subject';
+        }
+    });
+    
+    // Make category cells editable
+    document.querySelectorAll('td:nth-child(4)').forEach(cell => {
+        if (!cell.querySelector('input, select, textarea')) {
+            cell.classList.add('editable-cell');
+            cell.dataset.field = 'category';
+        }
+    });
+    
+    // Make priority cells editable
+    document.querySelectorAll('td:nth-child(5)').forEach(cell => {
+        if (!cell.querySelector('input, select, textarea')) {
+            cell.classList.add('editable-cell');
+            cell.dataset.field = 'priority';
+        }
+    });
+}
+
+function startInlineEdit(cell) {
+    const field = cell.dataset.field;
+    const currentValue = cell.textContent.trim();
+    const taskId = cell.closest('tr').dataset.taskId;
+    
+    if (!taskId) return;
+    
+    cell.dataset.editing = 'true';
+    cell.dataset.originalValue = currentValue;
+    
+    let input;
+    
+    switch (field) {
+        case 'subject':
+            input = createTextInput(currentValue, cell);
+            break;
+        case 'category':
+            input = createCategorySelect(currentValue, cell);
+            break;
+        case 'priority':
+            input = createPrioritySelect(currentValue, cell);
+            break;
+        default:
+            return;
+    }
+    
+    cell.innerHTML = '';
+    cell.appendChild(input);
+    input.focus();
+    input.select();
+    
+    // Add event listeners
+    input.addEventListener('blur', () => saveInlineEdit(cell, taskId, field));
+    input.addEventListener('keydown', (e) => handleInlineEditKeydown(e, cell, taskId, field));
+}
+
+function createTextInput(value, cell) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = value;
+    input.className = 'form-control form-control-sm';
+    input.style.cssText = 'border: none; background: transparent; padding: 0.375rem; margin: -0.375rem;';
+    
+    // Validation
+    input.addEventListener('input', function() {
+        if (this.value.length < 3) {
+            this.classList.add('is-invalid');
+        } else {
+            this.classList.remove('is-invalid');
+        }
+    });
+    
+    return input;
+}
+
+function createCategorySelect(value, cell) {
+    const select = document.createElement('select');
+    select.className = 'form-select form-select-sm';
+    select.style.cssText = 'border: none; background: transparent; padding: 0.375rem; margin: -0.375rem;';
+    
+    const categories = [
+        'Technical Issue', 'Billing Question', 'Feature Request', 
+        'Complaint', 'General Inquiry', 'Account Issue',
+        'Maintenance', 'Security', 'Utilities', 'Amenities'
+    ];
+    
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        if (category === value) option.selected = true;
+        select.appendChild(option);
+    });
+    
+    return select;
+}
+
+function createPrioritySelect(value, cell) {
+    const select = document.createElement('select');
+    select.className = 'form-select form-select-sm';
+    select.style.cssText = 'border: none; background: transparent; padding: 0.375rem; margin: -0.375rem;';
+    
+    const priorities = ['Low', 'Medium', 'High', 'Urgent'];
+    
+    priorities.forEach(priority => {
+        const option = document.createElement('option');
+        option.value = priority;
+        option.textContent = priority;
+        if (priority === value) option.selected = true;
+        select.appendChild(option);
+    });
+    
+    return select;
+}
+
+function handleInlineEditKeydown(e, cell, taskId, field) {
+    switch (e.key) {
+        case 'Enter':
+            e.preventDefault();
+            saveInlineEdit(cell, taskId, field);
+            break;
+        case 'Escape':
+            e.preventDefault();
+            cancelInlineEdit(cell);
+            break;
+        case 'Tab':
+            e.preventDefault();
+            saveInlineEdit(cell, taskId, field);
+            // Move to next editable cell
+            moveToNextEditableCell(cell);
+            break;
+    }
+}
+
+function saveInlineEdit(cell, taskId, field) {
+    const input = cell.querySelector('input, select');
+    if (!input) return;
+    
+    const newValue = input.value.trim();
+    const originalValue = cell.dataset.originalValue;
+    
+    if (newValue === originalValue) {
+        cancelInlineEdit(cell);
+        return;
+    }
+    
+    // Validation
+    if (field === 'subject' && newValue.length < 3) {
+        input.classList.add('is-invalid');
+        return;
+    }
+    
+    // Show loading state
+    cell.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+    
+    // API call
+    updateTaskField(taskId, field, newValue)
+        .then(response => {
+            if (response.status === 'success') {
+                // Update cell content
+                updateCellContent(cell, field, newValue);
+                showNotification('Success', 'Task updated successfully', 'success');
+            } else {
+                throw new Error(response.message || 'Update failed');
+            }
+        })
+        .catch(error => {
+            // Restore original value
+            cancelInlineEdit(cell);
+            showNotification('Error', 'Failed to update task: ' + error.message, 'error');
+        });
+}
+
+function cancelInlineEdit(cell) {
+    const originalValue = cell.dataset.originalValue;
+    const field = cell.dataset.field;
+    
+    updateCellContent(cell, field, originalValue);
+}
+
+function updateCellContent(cell, field, value) {
+    cell.dataset.editing = 'false';
+    delete cell.dataset.originalValue;
+    
+    switch (field) {
+        case 'subject':
+            cell.innerHTML = `<a href="#" onclick="viewTask(${cell.closest('tr').dataset.taskId}); return false;">${escapeHtml(value)}</a>`;
+            break;
+        case 'category':
+            cell.innerHTML = `<span class="badge bg-secondary">${escapeHtml(value)}</span>`;
+            break;
+        case 'priority':
+            const priorityClass = getPriorityClass(value);
+            cell.innerHTML = `<span class="badge bg-${priorityClass}">${escapeHtml(value)}</span>`;
+            break;
+    }
+}
+
+function moveToNextEditableCell(currentCell) {
+    const currentRow = currentCell.closest('tr');
+    const currentIndex = Array.from(currentRow.children).indexOf(currentCell);
+    const nextCell = currentRow.children[currentIndex + 1];
+    
+    if (nextCell && nextCell.classList.contains('editable-cell')) {
+        nextCell.click();
+    } else {
+        // Move to next row
+        const nextRow = currentRow.nextElementSibling;
+        if (nextRow) {
+            const nextRowCell = nextRow.children[currentIndex];
+            if (nextRowCell && nextRowCell.classList.contains('editable-cell')) {
+                nextRowCell.click();
+            }
+        }
+    }
+}
+
+async function updateTaskField(taskId, field, value) {
+    const updateData = { [field]: value };
+    return await API.put(`/api/tasks/${taskId}`, updateData);
+}
+
+function getPriorityClass(priority) {
+    const classes = {
+        'Low': 'success',
+        'Medium': 'warning',
+        'High': 'danger',
+        'Urgent': 'danger'
+    };
+    return classes[priority] || 'secondary';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function initializeKanban() {
+    console.log('Kanban initialized');
+    
+    // Create view toggle
+    createViewToggle();
+    
+    // Initialize Kanban board if enabled
+    if (localStorage.getItem('viewMode') === 'kanban') {
+        showKanbanView();
+    }
+}
+
+function initializeWordCloud() {
+    console.log('Word cloud initialized');
+    
+    // Load word cloud data and render
+    loadWordCloudData();
+}
+
+function initializeContextMenu() {
+    console.log('Context menu initialized');
+    
+    // Add right-click context menus
+    document.addEventListener('contextmenu', function(e) {
+        const target = e.target.closest('.task-row, .kanban-card');
+        if (target) {
+            e.preventDefault();
+            showContextMenu(e, target);
+        }
+    });
+}
+
+function initializeAdvancedSearch() {
+    console.log('Advanced search initialized');
+    
+    // Enhance search bar with advanced features
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(handleAdvancedSearch, 300));
+    }
+}
+
+function initializeMobileCards() {
+    console.log('Mobile cards initialized');
+    
+    // Check if mobile view should be used
+    if (window.innerWidth < 768) {
+        enableMobileView();
+    }
+    
+    // Listen for resize events
+    window.addEventListener('resize', function() {
+        if (window.innerWidth < 768) {
+            enableMobileView();
+        } else {
+            disableMobileView();
+        }
+    });
+}
+
+function initializeConfirmations() {
+    console.log('Confirmations initialized');
+    
+    // Add confirmation to destructive actions
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('[data-confirm]')) {
+            e.preventDefault();
+            const message = e.target.dataset.confirm;
+            showConfirmationDialog(message, () => {
+                // Execute the original action
+                const href = e.target.href;
+                const onclick = e.target.onclick;
+                if (href) {
+                    window.location.href = href;
+                } else if (onclick) {
+                    onclick.call(e.target);
+                }
+            });
+        }
+    });
+}
+
+function initializeCustomizableDashboard() {
+    console.log('Customizable dashboard initialized');
+    
+    // Load dashboard preferences
+    loadDashboardPreferences();
+    
+    // Add customize button
+    createCustomizeButton();
+}
+
+function initializeTaskTemplates() {
+    console.log('Task templates initialized');
+    
+    // Load templates and add to UI
+    loadTaskTemplates();
+}
+
+function initializeTaskTimeline() {
+    console.log('Task timeline initialized');
+    
+    // Add timeline tab to task modal
+    addTimelineTab();
+}
+
+function initializeResidentSidebar() {
+    console.log('Resident sidebar initialized');
+    
+    // ResidentSidebarManager is already initialized in resident-sidebar.js
+    // Add click handlers to task rows for resident info
+    document.addEventListener('click', function(e) {
+        const taskRow = e.target.closest('.task-row');
+        if (taskRow && e.target.matches('[data-resident-email]')) {
+            const email = e.target.dataset.residentEmail;
+            if (window.ResidentSidebarManager) {
+                window.ResidentSidebarManager.show({ email: email });
+            }
+        }
+    });
+}
+
+function initializeAnalyticsDrilldown() {
+    console.log('Analytics drilldown initialized');
+    
+    // AnalyticsDrilldownManager is already initialized in analytics-drilldown.js
+    // Add export button to analytics page
+    const analyticsPage = document.querySelector('[data-page="analytics"]');
+    if (analyticsPage) {
+        const exportButton = document.createElement('button');
+        exportButton.className = 'btn btn-outline-primary';
+        exportButton.innerHTML = '<i class="bi bi-download"></i> Export Data';
+        exportButton.setAttribute('data-export', 'true');
+        analyticsPage.appendChild(exportButton);
+    }
+}
+
+function initializeExportEnhancements() {
+    console.log('Export enhancements initialized');
+    
+    // ExportManager is already initialized in export-enhancements.js
+    // Add export buttons to task list
+    const taskListContainer = document.querySelector('.table-responsive');
+    if (taskListContainer) {
+        const exportButton = document.createElement('button');
+        exportButton.className = 'btn btn-outline-secondary btn-sm ms-2';
+        exportButton.innerHTML = '<i class="bi bi-download"></i> Export';
+        exportButton.setAttribute('data-export', 'true');
+        
+        const actionButtons = taskListContainer.querySelector('.btn-group');
+        if (actionButtons) {
+            actionButtons.appendChild(exportButton);
+        }
+    }
+}
+
+function initializeAdvancedSearch() {
+    console.log('Advanced search initialized');
+    
+    // AdvancedSearchManager is already initialized in advanced-search.js
+    // Enhance existing search input
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.placeholder = 'Advanced search... (try: status:New AND priority:High)';
+        searchInput.setAttribute('data-advanced-search', 'true');
+    }
+}
+
+// ==================== UTILITY FUNCTIONS ====================
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showNotification(title, message, type = 'info') {
+    if (window.NotificationManager) {
+        window.NotificationManager.show(title, message, type);
+    }
+}
+
+function showConfirmationDialog(message, onConfirm) {
+    // Create confirmation modal
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>${message}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirm-action">Confirm</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+    
+    document.getElementById('confirm-action').addEventListener('click', function() {
+        onConfirm();
+        bsModal.hide();
+        modal.remove();
+    });
+    
+    modal.addEventListener('hidden.bs.modal', function() {
+        modal.remove();
+    });
 }
