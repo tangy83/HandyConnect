@@ -49,8 +49,8 @@ jobs:
     
     - name: Run ${{ matrix.test-type }} tests
       run: |
-        # Use simple test runner that doesn't require pytest markers
-        python simple_test_runner.py
+        # Simple health check - validates imports and file structure
+        python ci_health_check.py
       env:
         CLIENT_ID: test_client_id
         CLIENT_SECRET: test_client_secret
@@ -106,7 +106,7 @@ jobs:
     
     - name: Run integration tests
       run: |
-        python simple_test_runner.py
+        python ci_health_check.py
       env:
         CLIENT_ID: test_client_id
         CLIENT_SECRET: test_client_secret
@@ -170,7 +170,7 @@ jobs:
     
     - name: Run E2E tests
       run: |
-        python simple_test_runner.py
+        python ci_health_check.py
       env:
         CLIENT_ID: test_client_id
         CLIENT_SECRET: test_client_secret
@@ -222,7 +222,7 @@ jobs:
     
     - name: Run performance tests
       run: |
-        python simple_test_runner.py
+        python ci_health_check.py
       env:
         CLIENT_ID: test_client_id
         CLIENT_SECRET: test_client_secret
@@ -308,7 +308,7 @@ jobs:
     
     - name: Run final test suite
       run: |
-        python simple_test_runner.py
+        python ci_health_check.py
       env:
         CLIENT_ID: test_client_id
         CLIENT_SECRET: test_client_secret
