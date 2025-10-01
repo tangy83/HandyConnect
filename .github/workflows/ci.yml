@@ -41,11 +41,12 @@ jobs:
         pip install eventlet==0.33.3 psutil==5.9.5
         pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
-    - name: Create test directories
+    - name: Create test directories and files
       run: |
         mkdir -p data
         mkdir -p logs
         mkdir -p data/analytics
+        echo "[]" > data/tasks.json
     
     - name: Run ${{ matrix.test-type }} tests
       run: |
@@ -98,11 +99,12 @@ jobs:
         pip install eventlet==0.33.3 psutil==5.9.5
         pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
-    - name: Create test directories
+    - name: Create test directories and files
       run: |
         mkdir -p data
         mkdir -p logs
         mkdir -p data/analytics
+        echo "[]" > data/tasks.json
     
     - name: Run integration tests
       run: |
@@ -146,11 +148,12 @@ jobs:
         pip install eventlet==0.33.3 psutil==5.9.5
         pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
-    - name: Create test directories
+    - name: Create test directories and files
       run: |
         mkdir -p data
         mkdir -p logs
         mkdir -p data/analytics
+        echo "[]" > data/tasks.json
     
     - name: Start application
       run: |
@@ -214,11 +217,12 @@ jobs:
         pip install eventlet==0.33.3 psutil==5.9.5
         pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
-    - name: Create test directories
+    - name: Create test directories and files
       run: |
         mkdir -p data
         mkdir -p logs
         mkdir -p data/analytics
+        echo "[]" > data/tasks.json
     
     - name: Run performance tests
       run: |
