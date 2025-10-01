@@ -1373,10 +1373,23 @@ function displayTaskDetails(task, retryCount = 0) {
         </div>
     `;
     
-    // Notes
-    taskNotes.innerHTML = `
-        ${task.notes ? `<div class="note-item">${task.notes.replace(/\n/g, '<br>')}</div>` : '<p class="text-muted">No notes yet</p>'}
-    `;
+    // Notes (handle both string and array formats)
+    let notesHTML = '';
+    if (task.notes) {
+        if (Array.isArray(task.notes)) {
+            // Notes is an array (threading replies)
+            notesHTML = task.notes.map(note => `<div class="note-item mb-2">${note.replace(/\n/g, '<br>')}</div>`).join('');
+        } else if (typeof task.notes === 'string') {
+            // Notes is a string (legacy format)
+            notesHTML = `<div class="note-item">${task.notes.replace(/\n/g, '<br>')}</div>`;
+        } else {
+            notesHTML = '<p class="text-muted">No notes yet</p>';
+        }
+    } else {
+        notesHTML = '<p class="text-muted">No notes yet</p>';
+    }
+    
+    taskNotes.innerHTML = notesHTML;
     
     // Thread info
     if (task.thread_info) {
