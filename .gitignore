@@ -168,6 +168,8 @@ logs/
 *.db
 .env.local
 .env.production
+.env.backup*
+*.example.old
 ssl/
 
 # Docker
