@@ -46,6 +46,14 @@ The comprehensive guide covering everything about HandyConnect:
 - Monitoring and maintenance
 - Production operations
 
+#### **[AWS_DEPLOYMENT_GUIDE.md](AWS_DEPLOYMENT_GUIDE.md)** - AWS Deployment 🆕
+- Complete AWS deployment guide
+- 4 deployment options (EC2, Elastic Beanstalk, ECS, App Runner)
+- Step-by-step instructions
+- Security and networking setup
+- Cost estimation
+- Production best practices
+
 ---
 
 ### 👨‍💻 For Developers
@@ -91,7 +99,8 @@ docs/
 │   └── Troubleshooting.md          # Problem resolution
 │
 ├── 👨‍💼 Administrator Documentation
-│   └── ADMINISTRATOR_GUIDE.md      # System administration
+│   ├── ADMINISTRATOR_GUIDE.md      # System administration
+│   └── AWS_DEPLOYMENT_GUIDE.md     # AWS deployment (NEW)
 │
 └── 👨‍💻 Developer Documentation
     ├── API_REFERENCE.md            # Complete API docs
@@ -109,6 +118,7 @@ docs/
 | **Understand the entire project** | [COMPLETE_PROJECT_GUIDE.md](COMPLETE_PROJECT_GUIDE.md) |
 | **Get started as a user** | [QUICK_START_GUIDE.md](QUICK_START_GUIDE.md) |
 | **Administer the system** | [ADMINISTRATOR_GUIDE.md](ADMINISTRATOR_GUIDE.md) |
+| **Deploy to AWS** | [AWS_DEPLOYMENT_GUIDE.md](AWS_DEPLOYMENT_GUIDE.md) 🆕 |
 | **Use the API** | [API_REFERENCE.md](API_REFERENCE.md) |
 | **Set up development environment** | [COMPLETE_PROJECT_GUIDE.md](COMPLETE_PROJECT_GUIDE.md#installation--setup) |
 | **Deploy to production** | [COMPLETE_PROJECT_GUIDE.md](COMPLETE_PROJECT_GUIDE.md#deployment) |
