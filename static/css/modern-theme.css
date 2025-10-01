@@ -4,25 +4,39 @@
  */
 
 /* ============================================
-   1. ROOT VARIABLES & THEME - PASTEL PALETTE
+   1. ROOT VARIABLES & THEME - PASTEL PALETTE WITH STRONG TEXT
    ============================================ */
 :root {
-    /* Pastel Color Palette */
-    --primary-color: #a8b8ff;
-    --primary-hover: #8da2ff;
-    --secondary-color: #b8c5d6;
-    --success-color: #a8e6b8;
-    --warning-color: #ffd4a3;
-    --danger-color: #ffb3b3;
-    --info-color: #a3d9ff;
+    /* Stat Card Pastel Backgrounds */
+    --stat-total-bg: #FFE3D4;
+    --stat-new-bg: #FFD6DC;
+    --stat-progress-bg: #D9F5E1;
+    --stat-completed-bg: #D8F0FF;
+    
+    /* Stat Card Icon Colors */
+    --icon-total: #FF8C42;
+    --icon-new: #E75480;
+    --icon-progress: #34A853;
+    --icon-completed: #1D9BF0;
+    
+    /* Primary Action Colors */
+    --primary-color: #6C63FF;
+    --primary-hover: #5850EC;
+    --secondary-color: #00BFA6;
+    --success-color: #34A853;
+    --warning-color: #FF8C42;
+    --danger-color: #E75480;
+    --info-color: #1D9BF0;
     
     /* Neutral Colors */
     --bg-primary: #ffffff;
     --bg-secondary: #f8fafc;
     --bg-tertiary: #f1f5f9;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
+    
+    /* Text Colors - Strong & Legible */
+    --text-primary: #1E293B;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
     
     /* Border & Shadows */
     --border-color: #e2e8f0;
@@ -93,7 +107,7 @@ p {
    4. NAVIGATION
    ============================================ */
 .navbar {
-    background: linear-gradient(135deg, #d4b5ff 0%, #b8a3ff 100%);
+    background: linear-gradient(135deg, #6C63FF 0%, #5850EC 100%);
     box-shadow: var(--shadow-md);
     padding: 0.75rem 0;
     position: sticky;
@@ -111,7 +125,7 @@ p {
 }
 
 .nav-link {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: rgba(255, 255, 255, 0.95) !important;
     font-weight: 500;
     padding: 0.5rem 1rem !important;
     border-radius: var(--border-radius-sm);
@@ -119,14 +133,15 @@ p {
 }
 
 .nav-link:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     color: white !important;
     transform: translateY(-1px);
 }
 
 .nav-link.active {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
     color: white !important;
+    font-weight: 600;
 }
 
 /* ============================================
@@ -163,20 +178,79 @@ p {
     padding: var(--spacing-lg);
 }
 
-/* Stat Cards */
+/* Stat Cards - Pastel Backgrounds with Dark Text */
 .card.bg-primary,
 .card.bg-warning,
 .card.bg-info,
 .card.bg-success {
     border: none;
     box-shadow: var(--shadow-md);
-    background: linear-gradient(135deg, currentColor, color-mix(in srgb, currentColor 80%, black));
+    transition: all 0.3s ease;
 }
 
-.card.bg-primary { background: linear-gradient(135deg, #c5d3ff, #a8b8ff); }
-.card.bg-warning { background: linear-gradient(135deg, #ffe4c4, #ffd4a3); }
-.card.bg-info { background: linear-gradient(135deg, #c4e8ff, #a3d9ff); }
-.card.bg-success { background: linear-gradient(135deg, #c4f0cc, #a8e6b8); }
+/* Total Tasks - Soft Orange */
+.card.bg-primary { 
+    background: var(--stat-total-bg);
+}
+
+.card.bg-primary h4,
+.card.bg-primary p,
+.card.bg-primary .text-white {
+    color: var(--text-primary) !important;
+    font-weight: 700;
+}
+
+.card.bg-primary i {
+    color: var(--icon-total) !important;
+}
+
+/* New Tasks - Soft Pink */
+.card.bg-warning { 
+    background: var(--stat-new-bg);
+}
+
+.card.bg-warning h4,
+.card.bg-warning p,
+.card.bg-warning .text-white {
+    color: var(--text-primary) !important;
+    font-weight: 700;
+}
+
+.card.bg-warning i {
+    color: var(--icon-new) !important;
+}
+
+/* In Progress - Soft Green */
+.card.bg-info { 
+    background: var(--stat-progress-bg);
+}
+
+.card.bg-info h4,
+.card.bg-info p,
+.card.bg-info .text-white {
+    color: var(--text-primary) !important;
+    font-weight: 700;
+}
+
+.card.bg-info i {
+    color: var(--icon-progress) !important;
+}
+
+/* Completed - Soft Blue */
+.card.bg-success { 
+    background: var(--stat-completed-bg);
+}
+
+.card.bg-success h4,
+.card.bg-success p,
+.card.bg-success .text-white {
+    color: var(--text-primary) !important;
+    font-weight: 700;
+}
+
+.card.bg-success i {
+    color: var(--icon-completed) !important;
+}
 
 /* ============================================
    6. BUTTONS
@@ -201,29 +275,49 @@ p {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #c5d3ff, #a8b8ff);
-    color: #4a5568;
+    background: var(--secondary-color);
+    color: white !important;
     font-weight: 600;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #a8b8ff, #8da2ff);
-    color: #2d3748;
+    background: #00a894;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #c4f0cc, #a8e6b8);
-    color: #2f7a43;
+    background: var(--success-color);
+    color: white !important;
+    font-weight: 600;
+}
+
+.btn-success:hover {
+    background: #2d9348;
+    color: white !important;
 }
 
 .btn-warning {
-    background: linear-gradient(135deg, #ffe4c4, #ffd4a3);
-    color: #9a6b3a;
+    background: var(--warning-color);
+    color: white !important;
+    font-weight: 600;
+}
+
+.btn-warning:hover {
+    background: #f07a2e;
+    color: white !important;
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #ffc9c9, #ffb3b3);
-    color: #9a3a3a;
+    background: var(--danger-color);
+    color: white !important;
+    font-weight: 600;
+}
+
+.btn-danger:hover {
+    background: #d4426f;
+    color: white !important;
 }
 
 .btn-outline-primary {
@@ -339,11 +433,17 @@ p {
 }
 
 .modal-header {
-    background: linear-gradient(135deg, #d4b5ff 0%, #c5d3ff 100%);
-    color: #4a5568;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    color: white;
     border-radius: var(--border-radius) var(--border-radius) 0 0;
     padding: var(--spacing-lg);
     border-bottom: none;
+}
+
+.modal-header h5,
+.modal-header .modal-title {
+    color: white !important;
+    font-weight: 700;
 }
 
 .modal-header .btn-close {
@@ -400,7 +500,7 @@ p {
 }
 
 /* ============================================
-   12. STAT CARDS (Dashboard)
+   12. STAT CARDS (Dashboard) - Enhanced Visibility
    ============================================ */
 .stat-card {
     background: white;
@@ -416,22 +516,29 @@ p {
     box-shadow: var(--shadow-lg);
 }
 
+/* Large, Bold Numbers */
 .stat-card h4 {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: 3rem;
+    font-weight: 800;
     margin-bottom: 0.25rem;
+    color: var(--text-primary) !important;
+    line-height: 1;
 }
 
+/* Clear Labels */
 .stat-card p {
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: 0.9375rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin: 0;
+    color: var(--text-secondary) !important;
 }
 
+/* Vibrant Icons */
 .stat-card i {
-    opacity: 0.8;
+    opacity: 1;
+    font-size: 2.5rem;
 }
 
 /* ============================================
@@ -538,55 +645,79 @@ p {
 }
 
 /* ============================================
-   17. STATUS BADGES
+   17. STATUS BADGES - High Contrast
    ============================================ */
 .status-badge-new {
-    background: linear-gradient(135deg, #ffe4c4, #ffd4a3);
-    color: #9a6b3a;
-    font-weight: 600;
+    background: var(--stat-new-bg);
+    color: var(--text-primary);
+    font-weight: 700;
+    border: 2px solid var(--icon-new);
 }
 
 .status-badge-inprogress {
-    background: linear-gradient(135deg, #c4e8ff, #a3d9ff);
-    color: #2d5a7a;
-    font-weight: 600;
+    background: var(--stat-progress-bg);
+    color: var(--text-primary);
+    font-weight: 700;
+    border: 2px solid var(--icon-progress);
 }
 
 .status-badge-completed {
-    background: linear-gradient(135deg, #c4f0cc, #a8e6b8);
-    color: #2f7a43;
-    font-weight: 600;
+    background: var(--stat-completed-bg);
+    color: var(--text-primary);
+    font-weight: 700;
+    border: 2px solid var(--icon-completed);
 }
 
 .status-badge-onhold {
-    background: linear-gradient(135deg, #e4c4ff, #d4b5ff);
-    color: #6a3a9a;
-    font-weight: 600;
+    background: #f3e8ff;
+    color: var(--text-primary);
+    font-weight: 700;
+    border: 2px solid var(--primary-color);
 }
 
 /* ============================================
-   18. PRIORITY BADGES
+   18. PRIORITY BADGES - High Contrast
    ============================================ */
 .priority-urgent {
-    background: var(--danger-color);
+    background: #ffe9f0;
+    color: var(--danger-color) !important;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--danger-color);
     animation: pulse-urgent 2s infinite;
 }
 
 .priority-high {
-    background: var(--warning-color);
+    background: #fff5e6;
+    color: var(--warning-color) !important;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--warning-color);
 }
 
 .priority-medium {
-    background: var(--info-color);
+    background: #e6f4ff;
+    color: var(--info-color) !important;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--info-color);
 }
 
 .priority-low {
-    background: var(--secondary-color);
+    background: #e8f5e9;
+    color: var(--success-color) !important;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--success-color);
 }
 
 @keyframes pulse-urgent {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.02); }
 }
 
 /* ============================================
@@ -692,14 +823,15 @@ p {
    23. THREAD INFO
    ============================================ */
 .thread-details {
-    background: linear-gradient(135deg, #f5f0ff, #ebe5ff);
+    background: linear-gradient(135deg, #f8f9fa, #f1f3f5);
     padding: var(--spacing-lg);
     border-radius: var(--border-radius);
-    border: 1px solid #d4b5ff;
+    border: 2px solid var(--border-color);
 }
 
 .thread-details h6 {
-    color: #6a3a9a;
+    color: var(--text-primary);
+    font-weight: 700;
     margin-top: var(--spacing-md);
 }
 
@@ -764,10 +896,11 @@ p {
 .rounded-sm { border-radius: var(--border-radius-sm) !important; }
 
 .text-gradient {
-    background: linear-gradient(135deg, #d4b5ff 0%, #a8b8ff 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    font-weight: 700;
 }
 
 /* ============================================
@@ -783,10 +916,8 @@ p {
 }
 
 .page-header h1 {
-    background: linear-gradient(135deg, #b8a3ff 0%, #a8b8ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--text-primary);
+    font-weight: 800;
     margin-bottom: var(--spacing-sm);
 }
 
@@ -910,19 +1041,23 @@ tr[data-priority="High"] {
    36. GRADIENT BACKGROUNDS
    ============================================ */
 .bg-gradient-primary {
-    background: linear-gradient(135deg, #d4b5ff 0%, #a8b8ff 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    color: white;
 }
 
 .bg-gradient-success {
-    background: linear-gradient(135deg, #c4f0cc, #a8e6b8);
+    background: linear-gradient(135deg, var(--success-color), #2d9348);
+    color: white;
 }
 
 .bg-gradient-warning {
-    background: linear-gradient(135deg, #ffe4c4, #ffd4a3);
+    background: linear-gradient(135deg, var(--warning-color), #f07a2e);
+    color: white;
 }
 
 .bg-gradient-danger {
-    background: linear-gradient(135deg, #ffc9c9, #ffb3b3);
+    background: linear-gradient(135deg, var(--danger-color), #d4426f);
+    color: white;
 }
 
 /* ============================================
