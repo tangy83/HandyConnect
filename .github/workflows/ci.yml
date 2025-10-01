@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
     strategy:
       matrix:
@@ -26,7 +26,7 @@ jobs:
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
-        path: ~\AppData\Local\pip\Cache
+        path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
@@ -34,14 +34,18 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest-cov pytest-html pytest-json-report
+        # Install only core dependencies for testing
+        pip install Flask==2.3.3 Flask-SocketIO==5.3.6 requests==2.31.0
+        pip install python-dotenv==1.0.0 openai==1.3.0 httpx==0.24.1
+        pip install msal==1.24.1 gunicorn==21.2.0 redis==5.0.1
+        pip install eventlet==0.33.3 psutil==5.9.5
+        pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
     - name: Create test directories
       run: |
         mkdir -p data
         mkdir -p logs
-        mkdir -p data\analytics
+        mkdir -p data/analytics
     
     - name: Run ${{ matrix.test-type }} tests
       run: |
@@ -73,7 +77,7 @@ jobs:
         name: codecov-umbrella
 
   integration-test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: test
     
     steps:
@@ -87,14 +91,17 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest-cov pytest-html pytest-json-report
+        pip install Flask==2.3.3 Flask-SocketIO==5.3.6 requests==2.31.0
+        pip install python-dotenv==1.0.0 openai==1.3.0 httpx==0.24.1
+        pip install msal==1.24.1 gunicorn==21.2.0 redis==5.0.1
+        pip install eventlet==0.33.3 psutil==5.9.5
+        pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
     - name: Create test directories
       run: |
         mkdir -p data
         mkdir -p logs
-        mkdir -p data\analytics
+        mkdir -p data/analytics
     
     - name: Run integration tests
       run: |
@@ -118,7 +125,7 @@ jobs:
           test_report.html
 
   e2e-test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: test
     
     steps:
@@ -132,19 +139,22 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest-cov pytest-html pytest-json-report
+        pip install Flask==2.3.3 Flask-SocketIO==5.3.6 requests==2.31.0
+        pip install python-dotenv==1.0.0 openai==1.3.0 httpx==0.24.1
+        pip install msal==1.24.1 gunicorn==21.2.0 redis==5.0.1
+        pip install eventlet==0.33.3 psutil==5.9.5
+        pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
     - name: Create test directories
       run: |
         mkdir -p data
         mkdir -p logs
-        mkdir -p data\analytics
+        mkdir -p data/analytics
     
     - name: Start application
       run: |
         python app.py &
-        timeout 10
+        sleep 10
       env:
         CLIENT_ID: test_client_id
         CLIENT_SECRET: test_client_secret
@@ -154,7 +164,7 @@ jobs:
     
     - name: Wait for application to start
       run: |
-        timeout 5
+        sleep 5
         curl -f http://localhost:5001/api/health || exit 1
     
     - name: Run E2E tests
@@ -169,7 +179,7 @@ jobs:
     
     - name: Stop application
       run: |
-        taskkill /F /IM python.exe || echo "No Python processes to kill"
+        pkill -f "python app.py" || echo "No Python processes to kill"
     
     - name: Upload E2E test results
       uses: actions/upload-artifact@v3
@@ -183,7 +193,7 @@ jobs:
           test_report.html
 
   performance-test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: test
     
     steps:
@@ -197,14 +207,17 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest-cov pytest-html pytest-json-report
+        pip install Flask==2.3.3 Flask-SocketIO==5.3.6 requests==2.31.0
+        pip install python-dotenv==1.0.0 openai==1.3.0 httpx==0.24.1
+        pip install msal==1.24.1 gunicorn==21.2.0 redis==5.0.1
+        pip install eventlet==0.33.3 psutil==5.9.5
+        pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
     - name: Create test directories
       run: |
         mkdir -p data
         mkdir -p logs
-        mkdir -p data\analytics
+        mkdir -p data/analytics
     
     - name: Run performance tests
       run: |
@@ -228,7 +241,7 @@ jobs:
           test_report.html
 
   security-test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: test
     
     steps:
@@ -242,7 +255,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install Flask==2.3.3 Flask-SocketIO==5.3.6 requests==2.31.0
+        pip install python-dotenv==1.0.0 openai==1.3.0 httpx==0.24.1
+        pip install msal==1.24.1 gunicorn==21.2.0 redis==5.0.1
+        pip install eventlet==0.33.3 psutil==5.9.5
         pip install bandit safety
     
     - name: Run security scan with bandit
@@ -263,7 +279,7 @@ jobs:
           safety-report.json
 
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: [test, integration-test, e2e-test, performance-test]
     
     steps:
@@ -277,13 +293,17 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install Flask==2.3.3 Flask-SocketIO==5.3.6 requests==2.31.0
+        pip install python-dotenv==1.0.0 openai==1.3.0 httpx==0.24.1
+        pip install msal==1.24.1 gunicorn==21.2.0 redis==5.0.1
+        pip install eventlet==0.33.3 psutil==5.9.5
+        pip install pytest-cov pytest-html pytest-json-report pytest==7.4.3
     
     - name: Create build directories
       run: |
         mkdir -p data
         mkdir -p logs
-        mkdir -p data\analytics
+        mkdir -p data/analytics
     
     - name: Run final test suite
       run: |
@@ -312,7 +332,7 @@ jobs:
           logs/
 
   deploy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
     
