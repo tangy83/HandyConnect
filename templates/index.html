@@ -175,8 +175,10 @@
                             <tr data-task-id="{{ task.id }}" 
                                 data-status="{{ task.status }}" 
                                 data-priority="{{ task.priority }}" 
-                                data-category="{{ task.category }}">
-                                <td>
+                                data-category="{{ task.category }}"
+                                onclick="handleRowClick(event, '{{ task.id }}')"
+                                style="cursor: pointer;">
+                                <td onclick="event.stopPropagation();">
                                     <input type="checkbox" class="task-checkbox" value="{{ task.id }}" onchange="updateSelectedCount()">
                                 </td>
                                 <td>
@@ -201,7 +203,7 @@
                                         {{ task.priority }}
                                     </span>
                                 </td>
-                                <td>
+                                <td onclick="event.stopPropagation();">
                                     <select class="form-select form-select-sm status-select" 
                                             data-task-id="{{ task.id }}">
                                         <option value="New" {% if task.status == 'New' %}selected{% endif %}>New</option>
@@ -213,13 +215,13 @@
                                 <td>
                                     <small>{{ task.created_at[:16] if task.created_at else 'N/A' }}</small>
                                 </td>
-                                <td>
+                                <td onclick="event.stopPropagation();">
                                     <button class="btn btn-sm btn-outline-primary" 
-                                            onclick="viewTask({{ task.id }})">
+                                            onclick="viewTask('{{ task.id }}')">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     <button class="btn btn-sm btn-outline-danger" 
-                                            onclick="deleteTask({{ task.id }})">
+                                            onclick="deleteTask('{{ task.id }}')">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
@@ -445,6 +447,19 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('category-filter').addEventListener('change', filterTasks);
     document.getElementById('search-input').addEventListener('input', filterTasks);
 });
+
+// Handle row click to view task details
+function handleRowClick(event, taskId) {
+    // Don't open if clicking on checkbox, select, or buttons
+    const target = event.target;
+    if (target.tagName === 'INPUT' || 
+        target.tagName === 'SELECT' || 
+        target.tagName === 'BUTTON' ||
+        target.closest('button')) {
+        return;
+    }
+    viewTask(taskId);
+}
 </script>
 {% endblock %}
 

@@ -356,10 +356,30 @@ def poll_emails():
                 thread_id = threading_service.create_or_update_thread(email)
                 thread = threading_service.get_thread(thread_id)
                 
+                # Check if a task already exists for this thread (reply to existing conversation)
+                thread_task = next((t for t in tasks if t.get('thread_id') == thread_id), None)
+                
+                if thread_task:
+                    # Update existing task with new email info instead of creating new task
+                    logger.info(f"Adding email to existing thread task: {thread_task['id']}")
+                    thread_task['updated_at'] = datetime.utcnow().isoformat()
+                    # Update thread info
+                    if 'thread_info' in thread_task:
+                        thread_task['thread_info']['email_count'] = len(thread.emails)
+                        thread_task['thread_info']['participants'] = list(thread.participants)
+                    # Add a note about the new reply
+                    if not thread_task.get('notes'):
+                        thread_task['notes'] = []
+                    if isinstance(thread_task['notes'], str):
+                        thread_task['notes'] = [thread_task['notes']]
+                    thread_task['notes'].append(f"Reply received at {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}: {email.get('body', '')[:100]}")
+                    processed_count += 1
+                    continue
+                
                 # Process email with LLM
                 llm_result = llm_service.process_email(email)
                 
-                # Create task with thread information
+                # Create NEW task (first email in thread)
                 task = {
                     'id': get_next_id(tasks),
                     'email_id': email['id'],
@@ -426,42 +446,63 @@ def email_polling_worker():
             for email in emails:
                 try:
                     existing_task = next((t for t in tasks if t.get('email_id') == email['id']), None)
-                    if not existing_task:
-                        # Create or update thread
-                        thread_id = threading_service.create_or_update_thread(email)
-                        thread = threading_service.get_thread(thread_id)
+                    if existing_task:
+                        continue
                         
-                        llm_result = llm_service.process_email(email)
-                        task = {
-                            'id': get_next_id(tasks),
-                            'email_id': email['id'],
-                            'thread_id': thread_id,
-                            'subject': email['subject'],
-                            'sender': email['sender']['name'],
-                            'sender_email': email['sender']['email'],
-                            'content': email['body'],
-                            'summary': llm_result.get('summary'),
-                            'category': llm_result.get('category'),
-                            'priority': llm_result.get('priority', 'Medium'),
-                            'status': 'New',
-                            'created_at': datetime.utcnow().isoformat(),
-                            'updated_at': datetime.utcnow().isoformat(),
-                            'assigned_to': None,
-                            'notes': None,
-                            'sentiment': llm_result.get('sentiment', 'Neutral'),
-                            'action_required': llm_result.get('action_required', 'Review and respond'),
-                            'thread_info': {
-                                'thread_id': thread_id,
-                                'thread_status': thread.status,
-                                'thread_priority': thread.priority,
-                                'thread_category': thread.category,
-                                'email_count': len(thread.emails),
-                                'participants': list(thread.participants)
-                            }
-                        }
-                        tasks.append(task)
+                    # Create or update thread
+                    thread_id = threading_service.create_or_update_thread(email)
+                    thread = threading_service.get_thread(thread_id)
+                    
+                    # Check if a task already exists for this thread (reply to existing conversation)
+                    thread_task = next((t for t in tasks if t.get('thread_id') == thread_id), None)
+                    
+                    if thread_task:
+                        # Update existing task instead of creating new one
+                        logger.info(f"Adding email to existing thread task: {thread_task['id']}")
+                        thread_task['updated_at'] = datetime.utcnow().isoformat()
+                        if 'thread_info' in thread_task:
+                            thread_task['thread_info']['email_count'] = len(thread.emails)
+                            thread_task['thread_info']['participants'] = list(thread.participants)
+                        if not thread_task.get('notes'):
+                            thread_task['notes'] = []
+                        if isinstance(thread_task['notes'], str):
+                            thread_task['notes'] = [thread_task['notes']]
+                        thread_task['notes'].append(f"Reply received at {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}: {email.get('body', '')[:100]}")
                         updated = True
-                        logger.info(f"Created new task from email: {email['subject']} (Thread: {thread_id})")
+                        continue
+                    
+                    # Create NEW task (first email in thread)
+                    llm_result = llm_service.process_email(email)
+                    task = {
+                        'id': get_next_id(tasks),
+                        'email_id': email['id'],
+                        'thread_id': thread_id,
+                        'subject': email['subject'],
+                        'sender': email['sender']['name'],
+                        'sender_email': email['sender']['email'],
+                        'content': email['body'],
+                        'summary': llm_result.get('summary'),
+                        'category': llm_result.get('category'),
+                        'priority': llm_result.get('priority', 'Medium'),
+                        'status': 'New',
+                        'created_at': datetime.utcnow().isoformat(),
+                        'updated_at': datetime.utcnow().isoformat(),
+                        'assigned_to': None,
+                        'notes': None,
+                        'sentiment': llm_result.get('sentiment', 'Neutral'),
+                        'action_required': llm_result.get('action_required', 'Review and respond'),
+                        'thread_info': {
+                            'thread_id': thread_id,
+                            'thread_status': thread.status,
+                            'thread_priority': thread.priority,
+                            'thread_category': thread.category,
+                            'email_count': len(thread.emails),
+                            'participants': list(thread.participants)
+                        }
+                    }
+                    tasks.append(task)
+                    updated = True
+                    logger.info(f"Created new task from email: {email['subject']} (Thread: {thread_id})")
                 except Exception as e:
                     logger.error(f"Error processing email {email.get('id', 'unknown')} in worker: {e}")
             
