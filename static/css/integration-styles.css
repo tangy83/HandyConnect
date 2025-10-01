@@ -1,0 +1,419 @@
+/* HandyConnect Phase 11: System Integration Styles */
+/* Enhanced styling for integrated components */
+
+/* ==================== INTEGRATION NOTIFICATIONS ==================== */
+
+.integration-notification {
+    animation: slideInRight 0.3s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: none;
+    border-radius: 8px;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ==================== REAL-TIME UPDATES ==================== */
+
+.task-updated {
+    animation: highlightUpdate 1s ease-out;
+    background-color: rgba(40, 167, 69, 0.1) !important;
+}
+
+@keyframes highlightUpdate {
+    0% {
+        background-color: rgba(40, 167, 69, 0.3);
+    }
+    100% {
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+}
+
+.metric-updated {
+    animation: metricPulse 1s ease-out;
+}
+
+@keyframes metricPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+        color: #007bff;
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ==================== ANALYTICS DASHBOARD ==================== */
+
+.analytics-dashboard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.analytics-metric-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.analytics-metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.analytics-metric-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.analytics-metric-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ==================== CHART CONTAINERS ==================== */
+
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.chart-container h6 {
+    color: #495057;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* HTML Chart Fallback Styles */
+.chart-data {
+    margin-top: 15px;
+}
+
+.chart-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.chart-label {
+    min-width: 120px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.chart-bar {
+    flex: 1;
+    height: 20px;
+    background-color: #e9ecef;
+    border-radius: 10px;
+    margin: 0 15px;
+    overflow: hidden;
+}
+
+.chart-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.chart-value {
+    min-width: 40px;
+    text-align: right;
+    font-weight: bold;
+    color: #495057;
+}
+
+/* ==================== REAL-TIME METRICS ==================== */
+
+.realtime-metrics {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.realtime-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.realtime-metric:last-child {
+    border-bottom: none;
+}
+
+.realtime-metric-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.realtime-metric-value {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #007bff;
+}
+
+/* ==================== CONNECTION STATUS ==================== */
+
+.connection-status {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.connection-status.online {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.connection-status.offline {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.connection-status.connecting {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* ==================== LOADING INDICATORS ==================== */
+
+.integration-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: rgba(0, 123, 255, 0.1);
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    border-radius: 6px;
+    color: #007bff;
+    font-size: 0.9rem;
+}
+
+.integration-loading .spinner-border {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+}
+
+/* ==================== ERROR STATES ==================== */
+
+.integration-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.integration-error .error-icon {
+    color: #dc3545;
+    margin-right: 8px;
+}
+
+/* ==================== SUCCESS STATES ==================== */
+
+.integration-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.integration-success .success-icon {
+    color: #28a745;
+    margin-right: 8px;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+@media (max-width: 768px) {
+    .analytics-metric-card {
+        margin-bottom: 15px;
+    }
+    
+    .analytics-metric-value {
+        font-size: 2rem;
+    }
+    
+    .chart-container {
+        padding: 15px;
+    }
+    
+    .chart-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .chart-label {
+        min-width: auto;
+        margin-bottom: 8px;
+    }
+    
+    .chart-bar {
+        width: 100%;
+        margin: 0 0 8px 0;
+    }
+    
+    .integration-notification {
+        left: 10px;
+        right: 10px;
+        min-width: auto;
+    }
+}
+
+/* ==================== DARK MODE SUPPORT ==================== */
+
+@media (prefers-color-scheme: dark) {
+    .chart-container {
+        background: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    .chart-container h6 {
+        color: #e2e8f0;
+    }
+    
+    .chart-label,
+    .chart-value {
+        color: #e2e8f0;
+    }
+    
+    .chart-bar {
+        background-color: #4a5568;
+    }
+    
+    .realtime-metrics {
+        background: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    .realtime-metric-label {
+        color: #e2e8f0;
+    }
+    
+    .realtime-metric-value {
+        color: #63b3ed;
+    }
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .task-updated,
+    .metric-updated,
+    .integration-notification {
+        animation: none;
+    }
+    
+    .analytics-metric-card {
+        transition: none;
+    }
+}
+
+/* ==================== PRINT STYLES ==================== */
+
+@media print {
+    .integration-notification,
+    .connection-status,
+    .integration-loading {
+        display: none !important;
+    }
+    
+    .chart-container {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .analytics-dashboard {
+        background: white !important;
+        color: black !important;
+    }
+}
+
+/* ==================== HIGH CONTRAST MODE ==================== */
+
+@media (prefers-contrast: high) {
+    .analytics-metric-card {
+        border: 2px solid #000;
+    }
+    
+    .chart-fill {
+        background: #000 !important;
+    }
+    
+    .integration-notification {
+        border: 2px solid #000;
+    }
+}
+
+/* ==================== FOCUS STYLES ==================== */
+
+.integration-notification:focus,
+.analytics-metric-card:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* ==================== CUSTOM SCROLLBAR ==================== */
+
+.chart-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chart-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.chart-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.chart-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
