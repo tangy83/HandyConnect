@@ -277,6 +277,15 @@ class EmailThreadingService:
             return True
         return False
     
+    def clear_all_threads(self) -> bool:
+        """Clear all threads from memory"""
+        try:
+            self.threads.clear()
+            self.email_to_thread.clear()
+            return True
+        except Exception:
+            return False
+    
     def get_thread_statistics(self) -> Dict:
         """Get thread statistics"""
         threads = list(self.threads.values())
@@ -346,6 +355,7 @@ class EmailThreadingService:
         del self.threads[thread_id2]
         
         return True
+
 
 
 

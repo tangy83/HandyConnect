@@ -134,10 +134,6 @@
             this.showSkeleton(container, skeleton);
         },
 
-        showKanbanSkeleton(container, cardCount = 6) {
-            const skeleton = this.createKanbanSkeleton(cardCount);
-            this.showSkeleton(container, skeleton);
-        },
 
         showCardSkeleton(container) {
             const skeleton = this.createCardSkeleton();
@@ -336,9 +332,6 @@
                         case 'table':
                             this.showTableSkeleton(container, skeletonCount);
                             break;
-                        case 'kanban':
-                            this.showKanbanSkeleton(container, skeletonCount);
-                            break;
                         case 'card':
                             this.showCardSkeleton(container);
                             break;
@@ -417,5 +410,6 @@
     window.LoaderManager = LoaderManager;
 
 })();
+
 
 

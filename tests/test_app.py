@@ -35,10 +35,10 @@ class TestHandyConnectApp(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
         data = json.loads(response.data)
-        self.assertEqual(data['status'], 'success')
-        self.assertEqual(data['data']['status'], 'healthy')
-        self.assertIn('timestamp', data['data'])
-        self.assertEqual(data['data']['version'], '1.0.0')
+        self.assertEqual(data['status'], 'healthy')
+        self.assertEqual(data['service'], 'HandyConnect API')
+        self.assertIn('timestamp', data)
+        self.assertEqual(data['version'], '1.0.0')
     
     def test_load_tasks_empty(self):
         """Test loading tasks from non-existent file"""

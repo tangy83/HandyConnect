@@ -4,7 +4,6 @@
 // Feature Flags Configuration
 const FEATURE_FLAGS = {
     websockets: true,
-    kanban: true,
     loaders: true,
     notifications: true,
     darkMode: true,
@@ -27,7 +26,7 @@ const FEATURE_FLAGS = {
 
 // Global variables for pagination and state management
 let currentPage = 1;
-let itemsPerPage = 10;
+let itemsPerPage = 20; // Default page size
 let totalTasks = 0;
 let filteredTasks = [];
 let selectedTasks = new Set();
@@ -134,9 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeInlineEditing();
     }
     
-    if (FEATURE_FLAGS.kanban) {
-        initializeKanban();
-    }
     
     if (FEATURE_FLAGS.wordCloud) {
         initializeWordCloud();
@@ -347,38 +343,7 @@ async function viewTask(taskId) {
     }
 }
 
-async function deleteTask(taskId) {
-    if (!confirm('Are you sure you want to delete this task?')) {
-        return;
-    }
-    
-    try {
-        showLoadingIndicator();
-        
-        const response = await fetch(`/api/tasks/${taskId}`, {
-            method: 'DELETE'
-        });
-        const result = await response.json();
-        
-        if (result && result.status === 'success') {
-            // Remove the row from the table
-            const row = document.querySelector(`tr[data-task-id="${taskId}"]`);
-            if (row) {
-                row.remove();
-            }
-            
-            showNotification('Task deleted successfully', 'success');
-            updateTaskCounts();
-        } else {
-            showNotification('Failed to delete task', 'error');
-        }
-    } catch (error) {
-        console.error('Error deleting task:', error);
-        showNotification('Error deleting task', 'error');
-    } finally {
-        hideLoadingIndicator();
-    }
-}
+// Delete functionality removed - tasks should be resolved through status updates instead
 
 // ==================== EMAIL POLLING ====================
 
@@ -958,44 +923,7 @@ async function exportSelectedTasks() {
     }
 }
 
-async function deleteSelectedTasks() {
-    const selectedTasks = getSelectedTasks();
-    
-    if (selectedTasks.length === 0) {
-        showNotification('Please select tasks to delete', 'warning');
-        return;
-    }
-    
-    if (!confirm(`Are you sure you want to delete ${selectedTasks.length} tasks? This action cannot be undone.`)) {
-        return;
-    }
-    
-    try {
-        showLoadingIndicator();
-        
-        const deletePromises = selectedTasks.map(taskId => 
-            fetch(`/api/tasks/${taskId}`, { method: 'DELETE' })
-        );
-        
-        const results = await Promise.all(deletePromises);
-        const successCount = results.filter(response => response.ok).length;
-        
-        if (successCount === selectedTasks.length) {
-            showNotification(`Successfully deleted ${successCount} tasks`, 'success');
-            // Reload the page to show updated tasks
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } else {
-            showNotification(`Deleted ${successCount} of ${selectedTasks.length} tasks`, 'warning');
-        }
-    } catch (error) {
-        console.error('Error in bulk delete:', error);
-        showNotification('Error deleting tasks', 'error');
-    } finally {
-        hideLoadingIndicator();
-    }
-}
+// Bulk delete functionality removed - tasks should be resolved through status updates instead
 
 function getSelectedTasks() {
     const selectedCheckboxes = document.querySelectorAll('.task-checkbox:checked');
@@ -1004,7 +932,21 @@ function getSelectedTasks() {
 
 // ==================== SORTING ====================
 
+// Global sort state for tasks
+let currentTaskSort = { field: 'created_at', direction: 'desc' };
+
 function sortTasks(sortBy) {
+    // Toggle sort direction if same field is clicked
+    if (currentTaskSort.field === sortBy) {
+        currentTaskSort.direction = currentTaskSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentTaskSort.field = sortBy;
+        currentTaskSort.direction = 'desc'; // Default to descending for new fields
+    }
+    
+    // Update sort icons
+    updateTaskSortIcons();
+    
     const tbody = document.getElementById('tasks-table-body');
     const rows = Array.from(tbody.querySelectorAll('tr'));
     
@@ -1015,18 +957,25 @@ function sortTasks(sortBy) {
             case 'created_at':
                 aValue = new Date(a.dataset.createdAt || 0);
                 bValue = new Date(b.dataset.createdAt || 0);
-                return bValue - aValue; // Newest first
+                break;
             case 'priority':
                 const priorityOrder = { 'Urgent': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
                 aValue = priorityOrder[a.dataset.priority] || 0;
                 bValue = priorityOrder[b.dataset.priority] || 0;
-                return bValue - aValue; // Highest priority first
+                break;
             case 'status':
-                aValue = a.dataset.status || '';
-                bValue = b.dataset.status || '';
-                return aValue.localeCompare(bValue);
+                aValue = (a.dataset.status || '').toLowerCase();
+                bValue = (b.dataset.status || '').toLowerCase();
+                break;
             default:
                 return 0;
+        }
+        
+        // Handle comparison based on sort direction
+        if (currentTaskSort.direction === 'desc') {
+            return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        } else {
+            return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
         }
     });
     
@@ -1034,7 +983,77 @@ function sortTasks(sortBy) {
     tbody.innerHTML = '';
     rows.forEach(row => tbody.appendChild(row));
     
-    showNotification(`Tasks sorted by ${sortBy}`, 'info');
+    showNotification(`Tasks sorted by ${sortBy} (${currentTaskSort.direction})`, 'info');
+}
+
+// Update task sort icon states
+function updateTaskSortIcons() {
+    // Get the sorting buttons and update their icons
+    const buttons = document.querySelectorAll('[onclick*="sortTasks"]');
+    buttons.forEach(button => {
+        const sortField = button.onclick.toString().match(/sortTasks\('(\w+)'\)/)?.[1];
+        const icon = button.querySelector('i');
+        
+        if (sortField === currentTaskSort.field) {
+            // Active sort field
+            switch (sortField) {
+                case 'created_at':
+                    icon.className = currentTaskSort.direction === 'desc' ? 'bi bi-sort-down' : 'bi bi-sort-up';
+                    break;
+                case 'priority':
+                    icon.className = currentTaskSort.direction === 'desc' ? 'bi bi-sort-up' : 'bi bi-sort-down';
+                    break;
+                case 'status':
+                    icon.className = currentTaskSort.direction === 'desc' ? 'bi bi-sort-alpha-down' : 'bi bi-sort-alpha-up';
+                    break;
+            }
+            button.classList.add('active');
+        } else {
+            // Inactive sort field
+            switch (sortField) {
+                case 'created_at':
+                    icon.className = 'bi bi-sort-down';
+                    break;
+                case 'priority':
+                    icon.className = 'bi bi-sort-up';
+                    break;
+                case 'status':
+                    icon.className = 'bi bi-sort-alpha-down';
+                    break;
+            }
+            button.classList.remove('active');
+        }
+    });
+}
+
+// ==================== PAGE SIZE MANAGEMENT ====================
+
+// Change page size
+function changePageSize() {
+    const pageSizeSelect = document.getElementById('page-size-select');
+    if (pageSizeSelect) {
+        itemsPerPage = parseInt(pageSizeSelect.value);
+        currentPage = 1; // Reset to first page when changing page size
+        updatePaginationDisplay();
+        renderCurrentPage();
+        showNotification(`Showing ${itemsPerPage} records per page`, 'info');
+    }
+}
+
+// Handle row click for tasks
+function handleRowClick(event, taskId) {
+    // Don't trigger if clicking on interactive elements
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT' || event.target.tagName === 'BUTTON') {
+        return;
+    }
+    
+    // Prevent default if it was a link
+    if (event.target.tagName === 'A') {
+        event.preventDefault();
+    }
+    
+    // Open task detail
+    viewTask(taskId);
 }
 
 // ==================== PAGINATION ====================
@@ -1501,15 +1520,7 @@ function addNote() {
     });
 }
 
-function deleteTaskFromModal() {
-    if (!currentTaskId) return;
-    
-    if (confirm('Are you sure you want to delete this task?')) {
-        deleteTask(currentTaskId);
-        const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
-        modal.hide();
-    }
-}
+// Delete from modal functionality removed - tasks should be resolved through status updates instead
 
 // ==================== UTILITY FUNCTIONS ====================
 
@@ -1960,17 +1971,155 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function initializeKanban() {
-    console.log('Kanban initialized');
+// Help and Info Functions
+function showHelp() {
+    const helpContent = `
+        <div class="help-content">
+            <h4><i class="bi bi-info-circle"></i> HandyConnect User Guide</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="bi bi-list-task"></i> Task Management</h6>
+                    <ul>
+                        <li>Create tasks from email communications</li>
+                        <li>Assign tasks to team members</li>
+                        <li>Track task status and priority</li>
+                        <li>Filter and search tasks</li>
+                    </ul>
+                    
+                    <h6><i class="bi bi-chat-dots"></i> Thread Management</h6>
+                    <ul>
+                        <li>View email conversation threads</li>
+                        <li>Track communication history</li>
+                        <li>Monitor response times</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="bi bi-graph-up"></i> Analytics</h6>
+                    <ul>
+                        <li>View task completion metrics</li>
+                        <li>Monitor team performance</li>
+                        <li>Track response times</li>
+                        <li>Export reports</li>
+                    </ul>
+                    
+                    <h6><i class="bi bi-keyboard"></i> Keyboard Shortcuts</h6>
+                    <ul>
+                        <li><kbd>Ctrl+N</kbd> - New task</li>
+                        <li><kbd>Ctrl+F</kbd> - Search</li>
+                        <li><kbd>Ctrl+S</kbd> - Save</li>
+                        <li><kbd>F5</kbd> - Refresh</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
     
-    // Create view toggle
-    createViewToggle();
+    showModal('User Guide', helpContent, 'lg');
+}
+
+function showAbout() {
+    const aboutContent = `
+        <div class="about-content text-center">
+            <h4><i class="bi bi-envelope-check"></i> HandyConnect</h4>
+            <p class="text-muted">Customer Support Task Manager</p>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Features</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="bi bi-check-circle text-success"></i> Email Integration</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Task Management</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Real-time Updates</li>
+                        <li><i class="bi bi-check-circle text-success"></i> Analytics Dashboard</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>System Info</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Version:</strong> 1.0.0</li>
+                        <li><strong>Status:</strong> <span class="badge bg-success">Active</span></li>
+                        <li><strong>Last Updated:</strong> ${new Date().toLocaleDateString()}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    `;
     
-    // Initialize Kanban board if enabled
-    if (localStorage.getItem('viewMode') === 'kanban') {
-        showKanbanView();
+    showModal('About HandyConnect', aboutContent);
+}
+
+// Modal Helper Function
+function showModal(title, content, size = '') {
+    // Remove any existing modal
+    const existingModal = document.getElementById('helpModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    const sizeClass = size ? `modal-${size}` : '';
+    
+    const modalHTML = `
+        <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+            <div class="modal-dialog ${sizeClass}">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="helpModalLabel">${title}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${content}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('helpModal'));
+    modal.show();
+    
+    // Clean up when modal is hidden
+    document.getElementById('helpModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// System Alert Functions
+function showSystemAlert(message, type = 'warning') {
+    const alertContainer = document.getElementById('system-alerts');
+    const alertMessage = document.getElementById('alert-message');
+    
+    if (!alertContainer || !alertMessage) return;
+    
+    // Update message
+    alertMessage.textContent = message;
+    
+    // Update alert type
+    const alertElement = alertContainer.querySelector('.alert');
+    alertElement.className = `alert alert-${type} alert-dismissible fade show`;
+    
+    // Show the alert
+    alertContainer.style.display = 'block';
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        hideSystemAlert();
+    }, 10000);
+}
+
+function hideSystemAlert() {
+    const alertContainer = document.getElementById('system-alerts');
+    if (alertContainer) {
+        alertContainer.style.display = 'none';
     }
 }
+
 
 function initializeWordCloud() {
     console.log('Word cloud initialized');
@@ -2185,3 +2334,23 @@ function showConfirmationDialog(message, onConfirm) {
         modal.remove();
     });
 }
+
+// Make API available globally for Kanban and other components
+window.API = API;
+
+// Initialize TaskManager for Kanban integration
+const TaskManager = {
+    viewTask(taskId) {
+        // Use the existing viewTask function from app-enhanced.js
+        if (typeof viewTask === 'function') {
+            viewTask(taskId);
+        } else {
+            // Fallback implementation
+            console.log('Opening task modal for task:', taskId);
+            // You can implement a simple modal here if needed
+        }
+    }
+};
+
+// Make TaskManager available globally
+window.TaskManager = TaskManager;

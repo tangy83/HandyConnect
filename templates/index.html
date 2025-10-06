@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
         <div class="mb-4">
             <h1>Customer Support Tasks</h1>
             <p class="text-muted">Manage and track customer support tasks from email communications</p>
@@ -10,20 +11,7 @@
 
         <!-- Task Statistics Cards -->
         <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4 id="total-tasks">{{ tasks|length }}</h4>
-                                <p class="mb-0">Total Tasks</p>
-                            </div>
-                            <i class="bi bi-list-task fs-1"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card bg-warning text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -36,7 +24,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card bg-info text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -49,7 +37,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card bg-success text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -118,9 +106,6 @@
                             <button class="btn btn-outline-success btn-sm" onclick="exportSelectedTasks()">
                                 <i class="bi bi-download"></i> Export
                             </button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="deleteSelectedTasks()">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -155,19 +140,16 @@
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover table-task-list table-sm" style="min-width: 100%;">
                         <thead>
                             <tr>
-                                <th>
+                                <th class="col-checkbox">
                                     <input type="checkbox" id="select-all-tasks-header" onchange="toggleAllTasks()">
                                 </th>
-                                <th>Subject</th>
-                                <th>Sender</th>
-                                <th>Category</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Created</th>
-                                <th>Actions</th>
+                                <th class="col-subject">Subject</th>
+                                <th class="col-case-id">Case ID</th>
+                                <th class="col-category">Category</th>
+                                <th class="col-status">Status</th>
                             </tr>
                         </thead>
                         <tbody id="tasks-table-body">
@@ -177,53 +159,42 @@
                                 data-priority="{{ task.priority }}" 
                                 data-category="{{ task.category }}"
                                 onclick="handleRowClick(event, '{{ task.id }}')"
-                                style="cursor: pointer;">
-                                <td onclick="event.stopPropagation();">
-                                    <input type="checkbox" class="task-checkbox" value="{{ task.id }}" onchange="updateSelectedCount()">
+                                class="task-row">
+                                <td class="col-checkbox" onclick="event.stopPropagation();">
+                                    <div class="d-flex align-items-center">
+                                        <input type="checkbox" class="task-checkbox" value="{{ task.id }}" onchange="updateSelectedCount()">
+                                        <span class="badge bg-dark ms-2">#{{ task.id }}</span>
+                                    </div>
                                 </td>
-                                <td>
-                                    <strong>{{ task.subject }}</strong>
-                                    {% if task.summary %}
-                                    <br><small class="text-muted">{{ task.summary[:100] }}...</small>
+                                <td class="col-subject">
+                                    <div class="task-subject">
+                                        <strong>{{ task.subject or 'No Subject' }}</strong>
+                                        <br><small class="text-muted">from {{ task.sender or 'Unknown' }}</small>
+                                        {% if task.created_at %}
+                                        <br><small class="text-muted">{{ task.created_at[:16] }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="col-case-id">
+                                    {% if task.case_number %}
+                                    <span class="badge bg-info">{{ task.case_number }}</span>
+                                    {% elif task.case_id %}
+                                    <span class="badge bg-secondary">No Case #</span>
+                                    {% else %}
+                                    <span class="text-muted">No Case</span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    {{ task.sender }}<br>
-                                    <small class="text-muted">{{ task.sender_email }}</small>
+                                <td class="col-category">
+                                    <span class="badge badge-category">{{ task.category or 'Uncategorized' }}</span>
                                 </td>
-                                <td>
-                                    <span class="badge bg-secondary">{{ task.category }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge 
-                                        {% if task.priority == 'Urgent' %}bg-danger
-                                        {% elif task.priority == 'High' %}bg-warning
-                                        {% elif task.priority == 'Medium' %}bg-info
-                                        {% else %}bg-secondary{% endif %}">
-                                        {{ task.priority }}
-                                    </span>
-                                </td>
-                                <td onclick="event.stopPropagation();">
+                                <td class="col-status" onclick="event.stopPropagation();">
                                     <select class="form-select form-select-sm status-select" 
                                             data-task-id="{{ task.id }}">
-                                        <option value="New" {% if task.status == 'New' %}selected{% endif %}>New</option>
-                                        <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                                        <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
-                                        <option value="On Hold" {% if task.status == 'On Hold' %}selected{% endif %}>On Hold</option>
+                                        <option value="New" {% if task.status == 'New' %}selected{% endif %}>🔵 New</option>
+                                        <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>🟡 In Progress</option>
+                                        <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>✅ Completed</option>
+                                        <option value="On Hold" {% if task.status == 'On Hold' %}selected{% endif %}>⏸️ On Hold</option>
                                     </select>
-                                </td>
-                                <td>
-                                    <small>{{ task.created_at[:16] if task.created_at else 'N/A' }}</small>
-                                </td>
-                                <td onclick="event.stopPropagation();">
-                                    <button class="btn btn-sm btn-outline-primary" 
-                                            onclick="viewTask('{{ task.id }}')">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger" 
-                                            onclick="deleteTask('{{ task.id }}')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -233,9 +204,19 @@
                 
                 <!-- Pagination Controls -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="text-muted">
-                        Showing <span id="showing-start">1</span> to <span id="showing-end">{{ tasks|length }}</span> 
-                        of <span id="total-tasks-count">{{ tasks|length }}</span> tasks
+                    <div class="d-flex align-items-center">
+                        <div class="text-muted me-3">
+                            Showing <span id="showing-start">1</span> to <span id="showing-end">{{ tasks|length }}</span> 
+                            of <span id="total-tasks-count">{{ tasks|length }}</span> tasks
+                        </div>
+                        <label for="page-size-select" class="form-label me-2 mb-0">Show:</label>
+                        <select class="form-select form-select-sm" id="page-size-select" style="width: auto;" onchange="changePageSize()">
+                            <option value="10">10</option>
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="ms-2 text-muted">per page</span>
                     </div>
                     <nav aria-label="Task pagination">
                         <ul class="pagination pagination-sm mb-0" id="pagination-controls">
@@ -282,9 +263,6 @@
                 <div class="btn-group">
                     <button type="button" class="btn btn-outline-primary btn-sm" onclick="editTask()">
                         <i class="bi bi-pencil"></i> Edit
-                    </button>
-                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteTaskFromModal()">
-                        <i class="bi bi-trash"></i> Delete
                     </button>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -411,7 +389,6 @@
                         <option value="priority">Update Priority</option>
                         <option value="category">Update Category</option>
                         <option value="assign">Assign To</option>
-                        <option value="delete">Delete Tasks</option>
                     </select>
                 </div>
                 <div class="mb-3" id="bulk-value-container">
@@ -425,6 +402,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="executeBulkOperation()">Execute</button>
             </div>
+        </div>
         </div>
     </div>
 </div>
@@ -460,6 +438,7 @@ function handleRowClick(event, taskId) {
     }
     viewTask(taskId);
 }
+
 </script>
 {% endblock %}
 

@@ -7,12 +7,16 @@ from dotenv import load_dotenv
 from features.core_services.email_service import EmailService
 from features.core_services.llm_service import LLMService
 from features.core_services.task_service import TaskService
+from features.core_services.case_service import CaseService
 from features.outlook_email_api.email_threading import EmailThreadingService
 from features.outlook_email_api.thread_api import thread_bp
 from features.outlook_email_api.graph_testing import graph_test_bp
 from features.performance_reporting.analytics_api import create_analytics_api
 from features.analytics.analytics_api import analytics_bp as new_analytics_bp
 from features.analytics.analytics_framework import AnalyticsFramework, AnalyticsConfig
+from features.case_management.case_api import case_bp
+from features.case_management.case_analytics import case_analytics_bp
+from features.case_management.task_api import task_bp
 from features.analytics.performance_metrics import start_performance_monitoring
 from features.analytics.realtime_dashboard import realtime_bp, get_realtime_broadcaster, get_realtime_collector
 from features.analytics.websocket_manager import initialize_websocket_support, WEBSOCKET_AVAILABLE
@@ -21,7 +25,10 @@ import time
 from functools import wraps
 
 # Load environment variables
-load_dotenv()
+# Explicitly specify .env file path to ensure it's found
+import pathlib
+env_path = pathlib.Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=env_path, override=True)
 
 # Configure logging
 logging.basicConfig(
@@ -56,6 +63,7 @@ try:
     email_service = EmailService()
     llm_service = LLMService()
     task_service = TaskService()
+    case_service = CaseService()
     threading_service = EmailThreadingService()
     logger.info("Services initialized successfully")
 except Exception as e:
@@ -65,6 +73,11 @@ except Exception as e:
 # Register thread API blueprint
 app.register_blueprint(thread_bp)
 app.register_blueprint(graph_test_bp)
+
+# Register case management blueprints
+app.register_blueprint(case_bp)
+app.register_blueprint(case_analytics_bp)
+app.register_blueprint(task_bp)
 
 # Register analytics API blueprint
 analytics_bp = create_analytics_api()
@@ -119,6 +132,92 @@ def get_next_id(tasks):
         return 1
     return max(task.get('id', 0) for task in tasks) + 1
 
+def migrate_existing_tasks_to_cases():
+    """Migrate existing tasks to have case_id by creating cases for them"""
+    try:
+        tasks = load_tasks()
+        if not tasks:
+            logger.info("No existing tasks to migrate")
+            return
+        
+        # Group tasks by customer email or thread_id
+        task_groups = {}
+        
+        for task in tasks:
+            # Skip if already has case_id
+            if task.get('case_id'):
+                continue
+                
+            # Group by customer email first, then by thread_id
+            customer_email = task.get('sender_email', 'unknown@example.com')
+            thread_id = task.get('thread_id', 'unknown')
+            
+            group_key = f"{customer_email}_{thread_id}"
+            
+            if group_key not in task_groups:
+                task_groups[group_key] = {
+                    'customer_email': customer_email,
+                    'thread_id': thread_id,
+                    'tasks': []
+                }
+            
+            task_groups[group_key]['tasks'].append(task)
+        
+        # Create cases for each group
+        cases_created = 0
+        for group_key, group_data in task_groups.items():
+            try:
+                # Create a case for this group
+                customer_email = group_data['customer_email']
+                thread_id = group_data['thread_id']
+                first_task = group_data['tasks'][0]
+                
+                # Create mock email data for case creation
+                mock_email = {
+                    'id': f"migrated_{first_task.get('email_id', 'unknown')}",
+                    'subject': first_task.get('subject', 'Migrated Task'),
+                    'sender': {
+                        'name': first_task.get('sender', 'Unknown'),
+                        'email': customer_email
+                    },
+                    'body': first_task.get('content', '')
+                }
+                
+                # Create mock LLM result
+                mock_llm_result = {
+                    'summary': first_task.get('summary', 'Migrated from existing task'),
+                    'category': first_task.get('category', 'General'),
+                    'priority': first_task.get('priority', 'Medium'),
+                    'sentiment': first_task.get('sentiment', 'Neutral'),
+                    'action_required': first_task.get('action_required', 'Review and respond')
+                }
+                
+                # Create case
+                case = case_service.create_case_from_email(mock_email, thread_id, mock_llm_result)
+                case_id = case['case_id']
+                
+                # Update all tasks in this group with case_id
+                for task in group_data['tasks']:
+                    task['case_id'] = case_id
+                    # Add task to case
+                    case_service.add_task_to_case(case_id, task['id'])
+                
+                cases_created += 1
+                logger.info(f"Migrated {len(group_data['tasks'])} tasks to case {case['case_number']}")
+                
+            except Exception as e:
+                logger.error(f"Error migrating task group {group_key}: {e}")
+                continue
+        
+        # Save updated tasks
+        if cases_created > 0:
+            save_tasks(tasks)
+            logger.info(f"Migration complete: {cases_created} cases created for existing tasks")
+        
+    except Exception as e:
+        logger.error(f"Error during task migration: {e}")
+        raise
+
 # API Response Helpers
 def success_response(data=None, message="Success", status_code=200):
     """Standard success response format"""
@@ -158,56 +257,45 @@ def handle_exceptions(f):
 # Routes
 @app.route('/')
 def index():
-    """Main dashboard page"""
+    """Redirect to Cases page as the main dashboard"""
+    return redirect(url_for('cases'))
+
+@app.route('/tasks')
+def tasks():
+    """Tasks page"""
     try:
         tasks = load_tasks()
+        
+        # Enrich tasks with case_number
+        from features.core_services.case_service import CaseService
+        case_service = CaseService()
+        cases = case_service.load_cases()
+        
+        # Create case_id to case_number mapping
+        case_map = {c['case_id']: c['case_number'] for c in cases}
+        
+        # Add case_number to each task
+        for task in tasks:
+            if task.get('case_id'):
+                task['case_number'] = case_map.get(task['case_id'], None)
+        
         # Sort by created_at descending
         tasks.sort(key=lambda x: x.get('created_at', ''), reverse=True)
         return render_template('index.html', tasks=tasks)
     except Exception as e:
-        logger.error(f"Error in index route: {e}")
+        logger.error(f"Error in tasks route: {e}")
         return render_template('index.html', tasks=[], error="Failed to load tasks")
 
-@app.route('/threads')
-def threads():
-    """Email threads page"""
+# Threads route removed - threads are now accessed via Communication tab in Case Detail modal
+@app.route('/cases')
+def cases():
+    """Cases page"""
     try:
-        # For now, we'll create mock thread data
-        # In a real implementation, this would come from the threading service
-        threads = [
-            {
-                'id': 1,
-                'subject': 'Account Access Issue',
-                'summary': 'Customer unable to access their account',
-                'status': 'Active',
-                'priority': 'High',
-                'message_count': 5,
-                'participants': [
-                    {'name': 'John Doe', 'email': 'john@example.com'},
-                    {'name': 'Support Agent', 'email': 'support@company.com'}
-                ],
-                'created_at': '2025-09-20T10:00:00Z',
-                'last_activity': '2025-09-20T13:30:00Z'
-            },
-            {
-                'id': 2,
-                'subject': 'Billing Question',
-                'summary': 'Customer has questions about their recent bill',
-                'status': 'Pending',
-                'priority': 'Medium',
-                'message_count': 3,
-                'participants': [
-                    {'name': 'Jane Smith', 'email': 'jane@example.com'},
-                    {'name': 'Billing Team', 'email': 'billing@company.com'}
-                ],
-                'created_at': '2025-09-20T11:15:00Z',
-                'last_activity': '2025-09-20T12:45:00Z'
-            }
-        ]
-        return render_template('threads.html', threads=threads)
+        cases = case_service.load_cases()
+        return render_template('cases.html', cases=cases)
     except Exception as e:
-        logger.error(f"Error in threads route: {e}")
-        return render_template('threads.html', threads=[], error="Failed to load threads")
+        logger.error(f"Error in cases page: {e}")
+        return render_template('cases.html', cases=[])
 
 @app.route('/analytics')
 def analytics():
@@ -347,6 +435,12 @@ def poll_emails():
         
         for email in emails:
             try:
+                # Skip emails sent BY HandyConnect (acknowledgment emails, etc.)
+                sender_email = email.get('sender', {}).get('email', '').lower()
+                if 'handymyjob@outlook.com' in sender_email:
+                    logger.info(f"Skipping self-sent email: {email.get('subject', 'No subject')}")
+                    continue
+                
                 # Check if email already exists
                 existing_task = next((t for t in tasks if t.get('email_id') == email['id']), None)
                 if existing_task:
@@ -373,15 +467,49 @@ def poll_emails():
                     if isinstance(thread_task['notes'], str):
                         thread_task['notes'] = [thread_task['notes']]
                     thread_task['notes'].append(f"Reply received at {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}: {email.get('body', '')[:100]}")
+                    
+                    # Update case activity if case_id exists
+                    if thread_task.get('case_id'):
+                        case = case_service.get_case_by_id(thread_task['case_id'])
+                        if case:
+                            # Log inbound email to case threads
+                            thread_data = {
+                                'direction': 'Inbound',
+                                'sender_name': email.get('sender', {}).get('name', 'Unknown'),
+                                'sender_email': email.get('sender', {}).get('email', ''),
+                                'subject': email.get('subject', 'No subject'),
+                                'body': email.get('body', ''),
+                                'timestamp': email.get('received_time', datetime.utcnow().isoformat()),
+                                'message_id': email.get('id', '')
+                            }
+                            case_service.add_thread_to_case(thread_task['case_id'], thread_data)
+                    
                     processed_count += 1
                     continue
                 
                 # Process email with LLM
                 llm_result = llm_service.process_email(email)
                 
-                # Create NEW task (first email in thread)
-                task = {
-                    'id': get_next_id(tasks),
+                # Create or find case for this email/thread
+                existing_case = case_service.find_case_by_thread(thread_id)
+                if not existing_case:
+                    # Try to find existing open case for this customer
+                    customer_email = email['sender']['email']
+                    existing_case = case_service.find_case_by_customer_email(customer_email)
+                
+                if existing_case:
+                    # Use existing case
+                    case_id = existing_case['case_id']
+                    logger.info(f"Using existing case {existing_case['case_number']} for email {email['id']}")
+                else:
+                    # Create new case
+                    case = case_service.create_case_from_email(email, thread_id, llm_result)
+                    case_id = case['case_id']
+                    logger.info(f"Created new case {case['case_number']} for email {email['id']}")
+                
+                # Create NEW task (first email in thread) with case_id using TaskService
+                task_data = {
+                    'case_id': case_id,  # NEW: Link to case
                     'email_id': email['id'],
                     'thread_id': thread_id,
                     'subject': email['subject'],
@@ -392,12 +520,11 @@ def poll_emails():
                     'category': llm_result.get('category'),
                     'priority': llm_result.get('priority', 'Medium'),
                     'status': 'New',
-                    'created_at': datetime.utcnow().isoformat(),
-                    'updated_at': datetime.utcnow().isoformat(),
                     'assigned_to': None,
-                    'notes': None,
+                    'notes': [],
                     'sentiment': llm_result.get('sentiment', 'Neutral'),
                     'action_required': llm_result.get('action_required', 'Review and respond'),
+                    'created_by': 'system',
                     'thread_info': {
                         'thread_id': thread_id,
                         'thread_status': thread.status,
@@ -408,7 +535,13 @@ def poll_emails():
                     }
                 }
                 
-                tasks.append(task)
+                # Create task using TaskService
+                from features.core_services.task_service import TaskService
+                task_service = TaskService()
+                task = task_service.create_task(task_data)
+                
+                # Add task to case
+                case_service.add_task_to_case(case_id, task['id'])
                 processed_count += 1
                 
             except Exception as e:
@@ -445,6 +578,12 @@ def email_polling_worker():
             
             for email in emails:
                 try:
+                    # Skip emails sent BY HandyConnect (acknowledgment emails, etc.)
+                    sender_email = email.get('sender', {}).get('email', '').lower()
+                    if 'handymyjob@outlook.com' in sender_email:
+                        logger.info(f"[Worker] Skipping self-sent email: {email.get('subject', 'No subject')}")
+                        continue
+                    
                     existing_task = next((t for t in tasks if t.get('email_id') == email['id']), None)
                     if existing_task:
                         continue
@@ -468,13 +607,52 @@ def email_polling_worker():
                         if isinstance(thread_task['notes'], str):
                             thread_task['notes'] = [thread_task['notes']]
                         thread_task['notes'].append(f"Reply received at {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}: {email.get('body', '')[:100]}")
+                        
+                        # Update case activity if case_id exists
+                        if thread_task.get('case_id'):
+                            case = case_service.get_case_by_id(thread_task['case_id'])
+                            if case:
+                                # Log inbound email to case threads
+                                thread_data = {
+                                    'direction': 'Inbound',
+                                    'sender_name': email.get('sender', {}).get('name', 'Unknown'),
+                                    'sender_email': email.get('sender', {}).get('email', ''),
+                                    'subject': email.get('subject', 'No subject'),
+                                    'body': email.get('body', ''),
+                                    'timestamp': email.get('received_time', datetime.utcnow().isoformat()),
+                                    'message_id': email.get('id', '')
+                                }
+                                case_service.add_thread_to_case(thread_task['case_id'], thread_data)
+                                # Regenerate AI summary with new email content
+                                logger.info(f"Regenerating AI summary for case {thread_task['case_id']} due to new email")
+                                case_service.regenerate_summary_for_case(thread_task['case_id'])
+                        
                         updated = True
                         continue
                     
-                    # Create NEW task (first email in thread)
+                    # Process email with LLM
                     llm_result = llm_service.process_email(email)
-                    task = {
-                        'id': get_next_id(tasks),
+                    
+                    # Create or find case for this email/thread
+                    existing_case = case_service.find_case_by_thread(thread_id)
+                    if not existing_case:
+                        # Try to find existing open case for this customer
+                        customer_email = email['sender']['email']
+                        existing_case = case_service.find_case_by_customer_email(customer_email)
+                    
+                    if existing_case:
+                        # Use existing case
+                        case_id = existing_case['case_id']
+                        logger.info(f"Using existing case {existing_case['case_number']} for email {email['id']}")
+                    else:
+                        # Create new case
+                        case = case_service.create_case_from_email(email, thread_id, llm_result)
+                        case_id = case['case_id']
+                        logger.info(f"Created new case {case['case_number']} for email {email['id']}")
+                    
+                    # Create NEW task (first email in thread) with case_id using TaskService
+                    task_data = {
+                        'case_id': case_id,  # NEW: Link to case
                         'email_id': email['id'],
                         'thread_id': thread_id,
                         'subject': email['subject'],
@@ -485,12 +663,11 @@ def email_polling_worker():
                         'category': llm_result.get('category'),
                         'priority': llm_result.get('priority', 'Medium'),
                         'status': 'New',
-                        'created_at': datetime.utcnow().isoformat(),
-                        'updated_at': datetime.utcnow().isoformat(),
                         'assigned_to': None,
-                        'notes': None,
+                        'notes': [],
                         'sentiment': llm_result.get('sentiment', 'Neutral'),
                         'action_required': llm_result.get('action_required', 'Review and respond'),
+                        'created_by': 'system',
                         'thread_info': {
                             'thread_id': thread_id,
                             'thread_status': thread.status,
@@ -500,9 +677,19 @@ def email_polling_worker():
                             'participants': list(thread.participants)
                         }
                     }
-                    tasks.append(task)
+                    
+                    # Create task using TaskService
+                    task_service = TaskService()
+                    task = task_service.create_task(task_data)
+                    
+                    # Add task to case
+                    case_service.add_task_to_case(case_id, task['id'])
                     updated = True
                     logger.info(f"Created new task from email: {email['subject']} (Thread: {thread_id})")
+                    
+                    # Regenerate AI summary with new email content
+                    logger.info(f"Regenerating AI summary for case {case_id} with new email content")
+                    case_service.regenerate_summary_for_case(case_id)
                 except Exception as e:
                     logger.error(f"Error processing email {email.get('id', 'unknown')} in worker: {e}")
             
@@ -645,6 +832,7 @@ def test_configuration():
             "email_service": "✅ Available" if os.getenv('CLIENT_ID') else "❌ Not configured",
             "llm_service": "✅ Available" if os.getenv('OPENAI_API_KEY') else "❌ Not configured",
             "task_service": "✅ Available",
+            "case_service": "✅ Available",
             "analytics_service": "✅ Available"
         }
         
@@ -663,6 +851,32 @@ def test_configuration():
             "message": "Configuration check failed",
             "data": {"error": str(e)}
         }), 500
+
+@app.route('/api/migrate/tasks-to-cases', methods=['POST'])
+@handle_exceptions
+def migrate_tasks_to_cases():
+    """Migrate existing tasks to cases"""
+    try:
+        logger.info("Starting task-to-case migration")
+        migrate_existing_tasks_to_cases()
+        
+        # Get stats after migration
+        tasks = load_tasks()
+        cases = case_service.load_cases()
+        
+        response_data = {
+            "migration_completed": True,
+            "tasks_migrated": len([t for t in tasks if t.get('case_id')]),
+            "total_tasks": len(tasks),
+            "total_cases": len(cases),
+            "tasks_without_cases": len([t for t in tasks if not t.get('case_id')])
+        }
+        
+        return success_response(response_data, "Task migration completed successfully")
+        
+    except Exception as e:
+        logger.error(f"Error in migrate_tasks_to_cases: {e}")
+        return error_response("Task migration failed", 500)
 
 if __name__ == '__main__':
     # Ensure data and logs directories exist

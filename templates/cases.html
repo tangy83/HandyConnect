@@ -1,0 +1,876 @@
+{% extends "base.html" %}
+
+{% block title %}Case Management - HandyConnect{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="bi bi-folder2-open text-primary"></i>
+                Case Management
+            </h1>
+            <p class="text-muted mb-0">Manage customer support cases and track resolution progress</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="showCreateCaseModal()">
+                <i class="bi bi-plus-circle"></i> New Case
+            </button>
+            <button class="btn btn-outline-secondary" onclick="refreshCases()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="open-cases">0</h4>
+                            <p class="card-text">Open Cases</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clock-history fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="resolved-cases">0</h4>
+                            <p class="card-text">Resolved Cases</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-check-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="sla-compliant">0%</h4>
+                            <p class="card-text">SLA Compliance</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-graph-up fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-4 filter-section">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="status-filter" class="form-label">Status</label>
+                    <select class="form-select" id="status-filter" onchange="filterCases()">
+                        <option value="">All Statuses</option>
+                        <option value="New">New</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Awaiting Customer">Awaiting Customer</option>
+                        <option value="Awaiting Vendor">Awaiting Vendor</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="priority-filter" class="form-label">Priority</label>
+                    <select class="form-select" id="priority-filter" onchange="filterCases()">
+                        <option value="">All Priorities</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Urgent">Urgent</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="type-filter" class="form-label">Type</label>
+                    <select class="form-select" id="type-filter" onchange="filterCases()">
+                        <option value="">All Types</option>
+                        <option value="General">General</option>
+                        <option value="Complaint">Complaint</option>
+                        <option value="Request">Request</option>
+                        <option value="Query">Query</option>
+                        <option value="Feedback">Feedback</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Billing">Billing</option>
+                        <option value="Security">Security</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="search-input" class="form-label">Search</label>
+                    <div class="position-relative">
+                        <input type="text" class="form-control" id="search-input" placeholder="Search cases..." onkeyup="searchCases()">
+                        <button type="button" class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2" onclick="clearSearch()" title="Clear search" style="border: none; background: none; color: #6c757d;">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                    <div class="mt-1">
+                        <small class="text-muted" id="search-results-count">0 results</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cases Table -->
+    <div class="card">
+        <div class="card-body">
+            <!-- Sorting Controls -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary btn-sm" id="sort-newest-btn" onclick="sortCases('created_at')">
+                        <i class="bi bi-sort-down" id="sort-newest-icon"></i> Newest
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" id="sort-priority-btn" onclick="sortCases('priority')">
+                        <i class="bi bi-sort-up" id="sort-priority-icon"></i> Priority
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" id="sort-status-btn" onclick="sortCases('status')">
+                        <i class="bi bi-sort-alpha-down" id="sort-status-icon"></i> Status
+                    </button>
+                </div>
+                <div class="text-muted small">
+                    <span id="cases-count">0</span> cases
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm" id="cases-table" style="min-width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                            </th>
+                            <th>Case Number</th>
+                            <th>Title</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>SLA Status</th>
+                            <th>Sentiment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cases-tbody">
+                        <!-- Cases will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination Controls -->
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <label for="page-size-select" class="form-label me-2 mb-0">Show:</label>
+                    <select class="form-select form-select-sm" id="page-size-select" style="width: auto;" onchange="changePageSize()">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span class="ms-2 text-muted">records per page</span>
+                </div>
+                <nav aria-label="Cases pagination">
+                    <ul class="pagination mb-0" id="pagination">
+                        <!-- Pagination will be generated here -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Case Modal -->
+<div class="modal fade" id="createCaseModal" tabindex="-1" aria-labelledby="createCaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createCaseModalLabel">
+                    <i class="bi bi-plus-circle"></i> Create New Case
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="create-case-form">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="case-title" class="form-label">Case Title *</label>
+                                <input type="text" class="form-control" id="case-title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="case-type" class="form-label">Case Type *</label>
+                                <select class="form-select" id="case-type" required>
+                                    <option value="General">General</option>
+                                    <option value="Complaint">Complaint</option>
+                                    <option value="Request">Request</option>
+                                    <option value="Query">Query</option>
+                                    <option value="Feedback">Feedback</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Billing">Billing</option>
+                                    <option value="Security">Security</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="case-priority" class="form-label">Priority *</label>
+                                <select class="form-select" id="case-priority" required>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Urgent">Urgent</option>
+                                    <option value="Critical">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="case-assigned-to" class="form-label">Assign To</label>
+                                <select class="form-select" id="case-assigned-to">
+                                    <option value="">Unassigned</option>
+                                    <option value="agent1">Agent 1</option>
+                                    <option value="agent2">Agent 2</option>
+                                    <option value="agent3">Agent 3</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="customer-name" class="form-label">Customer Name *</label>
+                                <input type="text" class="form-control" id="customer-name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="customer-email" class="form-label">Customer Email *</label>
+                                <input type="email" class="form-control" id="customer-email" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="case-description" class="form-label">Description</label>
+                        <textarea class="form-control" id="case-description" rows="4" placeholder="Describe the case details..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Create Case
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Case Detail Modal -->
+<div class="modal fade" id="caseDetailModal" tabindex="-1" aria-labelledby="caseDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="caseDetailModalLabel">
+                    <i class="bi bi-folder2-open"></i> 
+                    <span id="case-modal-number">Case Details</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="case-detail-content">
+                <!-- AI Summary Section - Enhanced -->
+                <div class="card mb-3 border-primary" style="border-width: 2px;">
+                    <div class="card-header bg-primary bg-opacity-10">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-robot text-primary me-2"></i>
+                                AI-Generated Summary
+                                <span class="badge bg-success ms-2">Auto-Generated</span>
+                            </h5>
+                            <div id="case-summary-badges">
+                                <!-- Urgency and sentiment badges will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Main Summary -->
+                        <div class="mb-3">
+                            <p class="lead mb-0" id="case-ai-summary" style="line-height: 1.6;">
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                Loading intelligent summary...
+                            </p>
+                        </div>
+                        
+                        <!-- Key Points Section -->
+                        <div id="case-key-points-section" style="display: none;">
+                            <hr class="my-3">
+                            <h6 class="text-primary mb-2">
+                                <i class="bi bi-check2-circle me-1"></i>
+                                Key Points
+                            </h6>
+                            <ul id="case-key-points" class="mb-0">
+                                <!-- Key points will be inserted here by JavaScript -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Case Info Section -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">Case Information</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <small class="text-muted">Status:</small>
+                                        <div id="case-detail-status">
+                                            <select class="form-select form-select-sm" id="case-status-select" onchange="updateCaseStatus()" style="width: auto; min-width: 120px;">
+                                                <option value="New">New</option>
+                                                <option value="In Progress">In Progress</option>
+                                                <option value="Waiting for Customer">Waiting for Customer</option>
+                                                <option value="Resolved">Resolved</option>
+                                                <option value="Closed">Closed</option>
+                                                <option value="On Hold">On Hold</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Priority:</small>
+                                        <div id="case-detail-priority">
+                                            <select class="form-select form-select-sm" id="case-priority-select" onchange="updateCasePriority()" style="width: auto; min-width: 120px;">
+                                                <option value="Low">Low</option>
+                                                <option value="Medium">Medium</option>
+                                                <option value="High">High</option>
+                                                <option value="Urgent">Urgent</option>
+                                                <option value="Critical">Critical</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Type:</small>
+                                        <div id="case-detail-type">
+                                            <select class="form-select form-select-sm" id="case-type-select" onchange="updateCaseType()" style="width: auto; min-width: 120px;">
+                                                <option value="General">General</option>
+                                                <option value="Complaint">Complaint</option>
+                                                <option value="Request">Request</option>
+                                                <option value="Query">Query</option>
+                                                <option value="Feedback">Feedback</option>
+                                                <option value="Maintenance">Maintenance</option>
+                                                <option value="Billing">Billing</option>
+                                                <option value="Security">Security</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Created:</small>
+                                        <div id="case-detail-created"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    Customer Information
+                                    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="editCustomerInfo()" title="Edit customer information">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                </h6>
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <small class="text-muted">Name:</small>
+                                        <div id="case-detail-customer-name"></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <small class="text-muted">Email:</small>
+                                        <div id="case-detail-customer-email"></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Property Number:</small>
+                                        <div id="case-detail-property-number"></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">Block Number:</small>
+                                        <div id="case-detail-block-number"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabbed Interface -->
+                <ul class="nav nav-tabs" id="caseDetailTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="communication-tab" data-bs-toggle="tab" data-bs-target="#communication" type="button" role="tab">
+                            <i class="bi bi-envelope"></i> Communication
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab">
+                            <i class="bi bi-list-check"></i> Tasks
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="timeline-tab" data-bs-toggle="tab" data-bs-target="#timeline" type="button" role="tab">
+                            <i class="bi bi-clock-history"></i> Timeline
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="caseDetailTabContent">
+                    <!-- Communication Tab (Default Active) -->
+                    <div class="tab-pane fade show active" id="communication" role="tabpanel">
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="card-title mb-0">
+                                        <i class="bi bi-envelope-open"></i> Email Communication History
+                                    </h6>
+                                    <button class="btn btn-sm btn-primary" onclick="showEmailResponseModal()">
+                                        <i class="bi bi-reply"></i> Send Response
+                                    </button>
+                                </div>
+                                <div id="case-communication-list" class="communication-timeline">
+                                    <p class="text-muted text-center py-4">
+                                        <i class="bi bi-envelope-open" style="font-size: 2rem;"></i><br>
+                                        Loading communication history...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Tab -->
+                    <div class="tab-pane fade" id="tasks" role="tabpanel">
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="card-title mb-0">Linked Tasks</h6>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="sortCaseTasks('created_at')">
+                                            <i class="bi bi-sort-down" id="case-task-sort-newest-icon"></i> Newest
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="sortCaseTasks('priority')">
+                                            <i class="bi bi-sort-up" id="case-task-sort-priority-icon"></i> Priority
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="sortCaseTasks('status')">
+                                            <i class="bi bi-sort-alpha-down" id="case-task-sort-status-icon"></i> Status
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="addNewTask()">
+                                            <i class="bi bi-plus"></i> Add Task
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tasks Table -->
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-sm" id="case-tasks-table" style="min-width: 100%;">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-checkbox">
+                                                    <input type="checkbox" id="select-all-case-tasks" onchange="toggleAllCaseTasks()">
+                                                </th>
+                                                <th class="col-subject">Subject</th>
+                                                <th class="col-category">Category</th>
+                                                <th class="col-priority">Priority</th>
+                                                <th class="col-status">Status</th>
+                                                <th class="col-created">Created</th>
+                                                <th class="col-assigned">Assigned To</th>
+                                                <th class="col-actions">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="case-tasks-tbody">
+                                            <!-- Tasks will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div id="case-tasks-empty" class="text-center py-4" style="display: none;">
+                                    <i class="bi bi-list-task fs-1 text-muted"></i>
+                                    <p class="text-muted mt-2">No tasks found for this case</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Tab -->
+                    <div class="tab-pane fade" id="timeline" role="tabpanel">
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Case Timeline</h6>
+                                <div id="case-timeline-events">
+                                    <p class="text-muted">Loading timeline...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Response Modal -->
+<div class="modal fade" id="emailResponseModal" tabindex="-1" aria-labelledby="emailResponseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailResponseModalLabel">
+                    <i class="bi bi-reply"></i> Send Email Response
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="emailResponseForm">
+                    <div class="mb-3">
+                        <label for="response-to" class="form-label">To</label>
+                        <input type="email" class="form-control" id="response-to" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="response-subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="response-subject" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="response-message" class="form-label">Message</label>
+                        <textarea class="form-control" id="response-message" rows="8" required placeholder="Type your response message here..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="include-case-details" checked>
+                            <label class="form-check-label" for="include-case-details">
+                                Include case details in email signature
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="sendEmailResponse()">
+                    <i class="bi bi-send"></i> Send Response
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Customer Information Modal -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCustomerModalLabel">
+                    <i class="bi bi-person-gear"></i> Edit Customer Information
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCustomerForm">
+                    <div class="mb-3">
+                        <label for="edit-customer-name" class="form-label">Customer Name</label>
+                        <input type="text" class="form-control" id="edit-customer-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-customer-email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="edit-customer-email" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit-property-number" class="form-label">Property Number</label>
+                                <input type="text" class="form-control" id="edit-property-number" placeholder="e.g., Apt 205, Unit 12">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit-block-number" class="form-label">Block Number</label>
+                                <input type="text" class="form-control" id="edit-block-number" placeholder="e.g., Block A, Building 3">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-property-address" class="form-label">Property Address</label>
+                        <textarea class="form-control" id="edit-property-address" rows="2" placeholder="Additional address details"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCustomerInfo()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDetailModalLabel">
+                    <i class="bi bi-list-task"></i> 
+                    <span id="task-modal-title">Task Details</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Task Information -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Task Information</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Subject:</small>
+                                        <div id="task-detail-subject" class="fw-medium"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Category:</small>
+                                        <div id="task-detail-category"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Priority:</small>
+                                        <div id="task-detail-priority"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Status:</small>
+                                        <div id="task-detail-status"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Created:</small>
+                                        <div id="task-detail-created"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Assigned To:</small>
+                                        <div id="task-detail-assigned"></div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted">Description:</small>
+                                    <div id="task-detail-description" class="mt-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Quick Actions</h6>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="updateTaskStatus()">
+                                        <i class="bi bi-check-circle"></i> Update Status
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="assignTask()">
+                                        <i class="bi bi-person-plus"></i> Assign
+                                    </button>
+                                    <button class="btn btn-outline-info btn-sm" onclick="addTaskNote()">
+                                        <i class="bi bi-chat-text"></i> Add Note
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Completion Form -->
+                <div class="card" id="task-completion-section" style="display: none;">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-check-circle-fill text-success"></i> Complete Task
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <form id="taskCompletionForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="completion-status" class="form-label">Final Status *</label>
+                                        <select class="form-select" id="completion-status" required>
+                                            <option value="">Select Status</option>
+                                            <option value="Completed">Completed</option>
+                                            <option value="Resolved">Resolved</option>
+                                            <option value="On Hold">On Hold</option>
+                                            <option value="Cancelled">Cancelled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="completion-date" class="form-label">Completion Date</label>
+                                        <input type="datetime-local" class="form-control" id="completion-date">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="completion-notes" class="form-label">Completion Notes *</label>
+                                <textarea class="form-control" id="completion-notes" rows="4" 
+                                    placeholder="Describe what was done, any issues encountered, and the final outcome..." required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="completion-time-spent" class="form-label">Time Spent (minutes)</label>
+                                <input type="number" class="form-control" id="completion-time-spent" 
+                                    placeholder="e.g., 45" min="1">
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="notify-customer" checked>
+                                    <label class="form-check-label" for="notify-customer">
+                                        Notify customer of task completion
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Task Notes -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Task Notes</h6>
+                        <button class="btn btn-sm btn-outline-primary" onclick="addTaskNote()">
+                            <i class="bi bi-plus"></i> Add Note
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="task-notes-list">
+                            <p class="text-muted">No notes available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="complete-task-btn" onclick="showTaskCompletionForm()" style="display: none;">
+                    <i class="bi bi-check-circle"></i> Complete Task
+                </button>
+                <button type="button" class="btn btn-primary" id="save-completion-btn" onclick="saveTaskCompletion()" style="display: none;">
+                    <i class="bi bi-save"></i> Save Completion
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions Modal -->
+<div class="modal fade" id="bulkActionsModal" tabindex="-1" aria-labelledby="bulkActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkActionsModalLabel">
+                    <i class="bi bi-list-check"></i> Bulk Actions
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="bulk-status" class="form-label">Update Status</label>
+                    <select class="form-select" id="bulk-status">
+                        <option value="">Select Status</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Awaiting Customer">Awaiting Customer</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="bulk-assignee" class="form-label">Assign To</label>
+                    <select class="form-select" id="bulk-assignee">
+                        <option value="">Select Assignee</option>
+                        <option value="agent1">Agent 1</option>
+                        <option value="agent2">Agent 2</option>
+                        <option value="agent3">Agent 3</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="applyBulkActions()">
+                    <i class="bi bi-check-circle"></i> Apply Actions
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Assignment Modal -->
+<div class="modal fade" id="taskAssignmentModal" tabindex="-1" aria-labelledby="taskAssignmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskAssignmentModalLabel">
+                    <i class="bi bi-person-plus"></i> Assign Task
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Task</label>
+                    <p id="assign-task-subject" class="mb-0 text-muted"></p>
+                </div>
+                <div class="mb-3">
+                    <label for="assign-name" class="form-label fw-bold">
+                        Assignee Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" class="form-control" id="assign-name" placeholder="Enter full name" required>
+                    <small class="text-muted">Full name of the person or company</small>
+                </div>
+                <div class="mb-3">
+                    <label for="assign-email" class="form-label fw-bold">
+                        Email Address <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" class="form-control" id="assign-email" placeholder="email@example.com" required>
+                    <small class="text-muted">We'll send task details to this address</small>
+                </div>
+                <div class="mb-3">
+                    <label for="assign-role" class="form-label fw-bold">
+                        Role <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="assign-role" required>
+                        <option value="">Select role...</option>
+                        <option value="Internal">Internal Team Member</option>
+                        <option value="External">External Contractor</option>
+                    </select>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> 
+                        Internal: Team members | External: Third-party contractors (plumbers, electricians, etc.)
+                    </small>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-envelope"></i>
+                    <strong>Email Notification:</strong> An email with task details will be automatically sent to the assignee.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitTaskAssignment()">
+                    <i class="bi bi-send"></i> Assign & Notify
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/case-management.js') }}"></script>
+{% endblock %}

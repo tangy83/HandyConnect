@@ -1,5 +1,358 @@
 /* Custom CSS for HandyConnect UX Enhancements */
 
+/* Full-width layout to prevent horizontal scrolling */
+.container-fluid {
+    max-width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Ensure tables don't cause horizontal scroll */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Better table layout for wide screens */
+.table {
+    min-width: 100%;
+    table-layout: auto;
+}
+
+/* Responsive table columns */
+.table th,
+.table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+/* Allow specific columns to be wider */
+.table .col-wide {
+    max-width: none;
+    white-space: normal;
+}
+
+/* Better mobile responsiveness */
+@media (max-width: 768px) {
+    .table th,
+    .table td {
+        max-width: 150px;
+        font-size: 0.875rem;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Sorting button styles */
+.btn-outline-secondary.active {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: white;
+}
+
+.btn-outline-secondary.active:hover {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: white;
+}
+
+/* Clickable table rows */
+.task-row {
+    cursor: pointer;
+}
+
+.task-row:hover {
+    background-color: var(--bs-light);
+}
+
+.thread-row {
+    cursor: pointer;
+}
+
+.thread-row:hover {
+    background-color: var(--bs-light);
+}
+
+/* Full width layout */
+.container-fluid {
+    max-width: none;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Main content spacing to account for larger navbar */
+main {
+    padding-top: 1.5rem; /* Increased top padding */
+}
+
+/* Widen tables and content areas */
+.table-container {
+    overflow-x: auto;
+    min-width: 100%;
+}
+
+/* Ensure tables take full width */
+.table {
+    min-width: 100%;
+    table-layout: auto;
+}
+
+/* Responsive column sizing */
+.table th,
+.table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Allow specific columns to wrap if needed */
+.table .text-wrap {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+/* Cases table column widths */
+#cases-table th:nth-child(1) { width: 3%; } /* Checkbox */
+#cases-table th:nth-child(2) { width: 12%; } /* Case Number */
+#cases-table th:nth-child(3) { width: 30%; } /* Title */
+#cases-table th:nth-child(4) { width: 18%; } /* Customer */
+#cases-table th:nth-child(5) { width: 12%; } /* Status */
+#cases-table th:nth-child(6) { width: 8%; }  /* Priority */
+#cases-table th:nth-child(7) { width: 10%; } /* SLA Status */
+#cases-table th:nth-child(8) { width: 7%; }  /* Sentiment */
+
+/* AI Summary Preview Styling */
+.summary-preview {
+    font-size: 0.875rem;
+    color: #6c757d;
+    line-height: 1.4;
+    max-height: 3.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.summary-preview .ai-icon {
+    color: #0d6efd;
+    font-size: 0.875rem;
+    margin-right: 4px;
+}
+
+.summary-loading {
+    color: #999;
+    font-style: italic;
+}
+
+/* Enhanced Navigation Bar - 100% larger */
+.navbar {
+    min-height: 80px; /* Increased from default ~40px */
+    padding: 1rem 0; /* Increased padding */
+}
+
+.navbar-brand {
+    font-size: 1.75rem; /* Increased from default ~1.25rem */
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+}
+
+.navbar-brand i {
+    font-size: 2rem; /* Larger icon */
+    margin-right: 0.75rem;
+}
+
+.navbar-nav .nav-link {
+    font-size: 1.1rem; /* Increased from default */
+    font-weight: 500;
+    padding: 0.75rem 1.25rem !important; /* Increased padding */
+    margin: 0 0.25rem;
+    border-radius: 0.375rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-1px);
+}
+
+.navbar-nav .nav-link i {
+    font-size: 1.25rem;
+    margin-right: 0.5rem;
+}
+
+.navbar-toggler {
+    padding: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 0.375rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+}
+
+.navbar-collapse {
+    margin-top: 0.5rem;
+}
+
+/* Right side buttons */
+.navbar-nav .btn {
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem;
+    border-radius: 0.375rem;
+}
+
+/* Search section improvements */
+#search-results-count {
+    display: block;
+    text-align: left;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+    min-height: 1.2rem;
+}
+
+/* Modal Tab Styling - Fix readability issues */
+.modal .nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 1.5rem;
+}
+
+.modal .nav-tabs .nav-item {
+    margin-bottom: -2px;
+}
+
+.modal .nav-tabs .nav-link {
+    color: #495057 !important;
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.modal .nav-tabs .nav-link:hover {
+    color: #007bff !important;
+    background-color: rgba(0, 123, 255, 0.05);
+    border-bottom-color: rgba(0, 123, 255, 0.3);
+}
+
+.modal .nav-tabs .nav-link.active {
+    color: #007bff !important;
+    background-color: transparent;
+    border-bottom-color: #007bff;
+    font-weight: 600;
+}
+
+.modal .nav-tabs .nav-link i {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Tab content styling */
+.modal .tab-content {
+    min-height: 300px;
+}
+
+.modal .tab-pane {
+    color: #212529;
+}
+
+.modal .tab-pane .card {
+    border: 1px solid #dee2e6;
+    box-shadow: none;
+}
+
+.modal .tab-pane .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    color: #495057;
+    font-weight: 600;
+}
+
+/* Case status dropdown styling */
+#case-status-select {
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    background-color: white;
+    color: #495057;
+}
+
+#case-status-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#case-status-select option {
+    color: #495057;
+    background-color: white;
+}
+
+/* Search input with clear button */
+#search-input {
+    padding-right: 2.5rem;
+}
+
+#search-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: #80bdff;
+}
+
+/* Filter section layout improvements */
+.filter-section .row {
+    align-items: end;
+}
+
+.filter-section .form-label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.filter-section .input-group {
+    margin-bottom: 0;
+}
+
+.filter-section .btn {
+    border-color: #ced4da;
+}
+
+.filter-section .btn:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .navbar-brand {
+        font-size: 1.5rem;
+    }
+    
+    .navbar-nav .nav-link {
+        font-size: 1rem;
+        padding: 0.6rem 1rem !important;
+        margin: 0.2rem 0;
+    }
+    
+    .navbar-nav .btn {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .filter-section .col-md-3 {
+        margin-bottom: 1rem;
+    }
+}
+
 /* Dark Mode Support */
 [data-bs-theme="dark"] {
     --bs-body-bg: #1a1a1a;
@@ -40,49 +393,6 @@
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Kanban Board Styles */
-.kanban-board {
-    min-height: 500px;
-}
-
-.kanban-column {
-    transition: all 0.3s ease;
-}
-
-.kanban-column.wip-exceeded {
-    border-color: #dc3545 !important;
-    background-color: rgba(220, 53, 69, 0.05);
-}
-
-.kanban-card {
-    transition: all 0.2s ease;
-    user-select: none;
-}
-
-.kanban-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.kanban-card.selected {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.kanban-card-ghost {
-    opacity: 0.4;
-    background: #f8f9fa;
-    border: 2px dashed #dee2e6;
-}
-
-.kanban-card-chosen {
-    transform: rotate(5deg);
-}
-
-.kanban-card-drag {
-    opacity: 0.8;
-    transform: rotate(5deg);
-}
 
 /* Loading States */
 .skeleton {
@@ -197,18 +507,6 @@
 
 /* Mobile Responsive */
 @media (max-width: 767.98px) {
-    .kanban-board {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .kanban-column {
-        min-width: 100%;
-    }
-    
-    .kanban-card {
-        margin-bottom: 0.5rem;
-    }
     
     .table-responsive {
         font-size: 0.875rem;
@@ -222,9 +520,6 @@
 
 /* High Contrast Mode */
 @media (prefers-contrast: high) {
-    .kanban-card {
-        border-width: 2px;
-    }
     
     .btn {
         border-width: 2px;
@@ -238,23 +533,225 @@
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-    .kanban-card,
     .skeleton,
     .notification-item {
         animation: none;
         transition: none;
     }
+}
+
+/* Tasks Dashboard Enhancements */
+.table-task-list {
+    font-size: 0.9rem;
+}
+
+.table-task-list th {
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.75rem 0.5rem;
+    vertical-align: middle;
+}
+
+.table-task-list td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table-task-list tr:hover {
+    background-color: #f7faff;
+    transition: background-color 0.2s ease;
+}
+
+.table-task-list tr.selected {
+    border-left: 4px solid #0b5cab;
+    background-color: #f0f7ff;
+}
+
+/* Column widths */
+.col-checkbox {
+    width: 120px;
+}
+
+.col-subject {
+    min-width: 250px;
+}
+
+.col-case-id {
+    width: 100px;
+}
+
+.col-category {
+    width: 140px;
+}
+
+.col-priority {
+    width: 100px;
+}
+
+.col-status {
+    width: 150px;
+}
+
+.col-actions {
+    width: 100px;
+}
+
+/* Task subject styling */
+.task-subject {
+    line-height: 1.4;
+}
+
+.task-subject strong {
+    color: #212529;
+    font-size: 0.95rem;
+}
+
+.task-subject small {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+/* Enhanced Badge Styles */
+.badge-category {
+    background-color: #e9ecef;
+    color: #495057;
+    font-size: 0.75rem;
+    padding: 0.4em 0.8em;
+    border-radius: 1rem;
+    font-weight: 500;
+}
+
+.badge-priority {
+    font-size: 0.75rem;
+    padding: 0.4em 0.8em;
+    border-radius: 1rem;
+    font-weight: 600;
+}
+
+.badge-urgent {
+    background-color: #FFB3A1;
+    color: #7a1f00;
+}
+
+.badge-high {
+    background-color: #FFB3A1;
+    color: #7a1f00;
+}
+
+.badge-medium {
+    background-color: #AEE5F1;
+    color: #005f73;
+}
+
+.badge-low {
+    background-color: #D3EBCD;
+    color: #004b23;
+}
+
+/* Action buttons */
+.btn-action {
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-group-sm .btn-action {
+    padding: 0.25rem 0.4rem;
+}
+
+/* Status select styling */
+.status-select {
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+    font-size: 0.8rem;
+    padding: 0.375rem 0.5rem;
+}
+
+.status-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Dark mode support for new styles */
+[data-bs-theme="dark"] .table-task-list th {
+    color: #adb5bd;
+    border-bottom-color: #495057;
+}
+
+[data-bs-theme="dark"] .table-task-list td {
+    border-bottom-color: #495057;
+}
+
+[data-bs-theme="dark"] .table-task-list tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-bs-theme="dark"] .table-task-list tr.selected {
+    background-color: rgba(13, 110, 253, 0.1);
+    border-left-color: #0d6efd;
+}
+
+[data-bs-theme="dark"] .task-subject strong {
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .task-subject small {
+    color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .badge-category {
+    background-color: #495057;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .status-select {
+    background-color: #2d2d2d;
+    border-color: #495057;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .status-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-task-list {
+        font-size: 0.8rem;
+    }
     
-    .kanban-card:hover {
-        transform: none;
+    .col-subject {
+        min-width: 150px;
+    }
+    
+    .col-case-id {
+        width: 80px;
+    }
+    
+    .task-subject strong {
+        font-size: 0.85rem;
+    }
+    
+    .task-subject small {
+        font-size: 0.7rem;
+    }
+    
+    .badge-priority,
+    .badge-category {
+        font-size: 0.7rem;
+        padding: 0.3em 0.6em;
     }
 }
 
 /* Focus Management */
-.kanban-card:focus {
-    outline: 2px solid #007bff;
-    outline-offset: 2px;
-}
 
 /* Accessibility Improvements */
 .sr-only {
@@ -269,36 +766,6 @@
     border: 0;
 }
 
-/* Custom Scrollbar */
-.kanban-board::-webkit-scrollbar {
-    height: 8px;
-}
-
-.kanban-board::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.kanban-board::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-.kanban-board::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-[data-bs-theme="dark"] .kanban-board::-webkit-scrollbar-track {
-    background: #2d2d2d;
-}
-
-[data-bs-theme="dark"] .kanban-board::-webkit-scrollbar-thumb {
-    background: #555555;
-}
-
-[data-bs-theme="dark"] .kanban-board::-webkit-scrollbar-thumb:hover {
-    background: #777777;
-}
 
 /* Word Cloud Styles */
 .word-cloud-container {
@@ -458,5 +925,98 @@
     border-color: #444444;
     color: #ffffff;
 }
+
+/* ===================================
+   COMMUNICATION TIMELINE STYLES
+   =================================== */
+
+.communication-timeline {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.communication-item {
+    transition: all 0.2s ease;
+}
+
+.communication-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    margin-left: -8px;
+    padding-left: 20px !important;
+}
+
+/* Inbound vs Outbound styling */
+.communication-item .border-primary {
+    border-left-width: 4px !important;
+}
+
+.communication-item .border-success {
+    border-left-width: 4px !important;
+}
+
+/* Email body styling */
+.email-body {
+    position: relative;
+    background: #f8f9fa;
+    border-left: 3px solid #dee2e6;
+}
+
+.email-preview {
+    position: relative;
+}
+
+.email-preview::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, transparent, #f8f9fa);
+}
+
+.email-full {
+    max-height: none !important;
+}
+
+/* Direction badges */
+.communication-item .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    font-weight: 600;
+}
+
+/* Responsive communication timeline */
+@media (max-width: 768px) {
+    .communication-item .ms-4 {
+        margin-left: 1rem !important;
+    }
+    
+    .communication-timeline {
+        max-height: 400px;
+    }
+}
+
+/* Smooth scrollbar for timeline */
+.communication-timeline::-webkit-scrollbar {
+    width: 8px;
+}
+
+.communication-timeline::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.communication-timeline::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.communication-timeline::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 
 

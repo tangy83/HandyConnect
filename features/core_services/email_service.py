@@ -2,14 +2,18 @@ import msal
 import requests
 import os
 import webbrowser
+import logging
 from pathlib import Path
 from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any
+
+logger = logging.getLogger(__name__)
 
 class EmailService:
     def __init__(self):
         self.client_id = os.getenv('CLIENT_ID')
         self.authority = os.getenv('AUTHORITY', 'https://login.microsoftonline.com/consumers')
-        self.scopes = os.getenv('SCOPES', 'User.Read Mail.Read').split()
+        self.scopes = os.getenv('SCOPES', 'User.Read Mail.Read Mail.Send').split()
         self.token_cache_path = Path('.token_cache.bin')
         self.graph_url = "https://graph.microsoft.com/v1.0"
         
@@ -177,7 +181,220 @@ class EmailService:
             return response.json()
                 
         except Exception as e:
-            print(f"Error getting user info: {e}")
+            logger.error(f"Error getting user info: {e}")
             return None
+    
+    def get_emails_with_case_context(self, case_id: str = None, limit: int = 50) -> List[Dict]:
+        """Get emails with case context information"""
+        try:
+            # Get basic emails
+            emails = self.get_emails(limit=limit)
+            if not emails:
+                return []
+            
+            # If case_id is provided, filter emails for that case
+            if case_id:
+                # This would require integration with case service to get email IDs
+                # For now, return all emails
+                pass
+            
+            # Add case context to each email
+            enriched_emails = []
+            for email in emails:
+                enriched_email = email.copy()
+                
+                # Add case context metadata
+                enriched_email['case_context'] = {
+                    'has_related_case': False,
+                    'case_id': None,
+                    'case_number': None,
+                    'case_status': None,
+                    'sla_status': None
+                }
+                
+                enriched_emails.append(enriched_email)
+            
+            logger.info(f"Retrieved {len(enriched_emails)} emails with case context")
+            return enriched_emails
+            
+        except Exception as e:
+            logger.error(f"Error getting emails with case context: {e}")
+            return []
+    
+    def send_email_response(self, case_id: str, response_text: str, 
+                          recipient_email: str, subject: str = None, 
+                          include_case_details: bool = True) -> bool:
+        """Send email response for a case using Microsoft Graph API"""
+        try:
+            # Get access token
+            access_token = self.get_access_token()
+            if not access_token:
+                logger.error("Failed to get access token for sending email")
+                return False
+            
+            # Get case information for context
+            case_context = self._get_case_context(case_id)
+            if not case_context:
+                logger.error(f"Case context not found for case {case_id}")
+                return False
+            
+            # Prepare email content
+            email_subject = subject or f"Re: {case_context.get('case_title', 'Case Update')}"
+            
+            # Build email body with optional case details
+            email_body = response_text
+            
+            if include_case_details:
+                case_details = f"""
+
+---
+Case Information:
+- Case Number: {case_context.get('case_number', 'N/A')}
+- Status: {case_context.get('status', 'N/A')}
+- Priority: {case_context.get('priority', 'N/A')}
+
+This email was sent from HandyConnect Case Management System.
+If you have any questions, please reference the case number above in your reply.
+"""
+                email_body += case_details
+            
+            # Prepare the email message in Microsoft Graph format
+            email_message = {
+                "message": {
+                    "subject": email_subject,
+                    "body": {
+                        "contentType": "Text",
+                        "content": email_body
+                    },
+                    "toRecipients": [
+                        {
+                            "emailAddress": {
+                                "address": recipient_email
+                            }
+                        }
+                    ]
+                },
+                "saveToSentItems": "true"
+            }
+            
+            # Send email using Microsoft Graph API
+            send_url = f"{self.graph_url}/me/sendMail"
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json'
+            }
+            
+            response = requests.post(send_url, headers=headers, json=email_message)
+            
+            if response.status_code == 202:
+                logger.info(f"✉️ Email sent successfully for case {case_context.get('case_number')} to {recipient_email}")
+                
+                # Log email to case threads
+                self._log_outbound_email_to_thread(
+                    case_id=case_id,
+                    recipient_email=recipient_email,
+                    subject=email_subject,
+                    body=email_body
+                )
+                
+                return True
+            else:
+                logger.error(f"Failed to send email. Status: {response.status_code}, Response: {response.text}")
+                return False
+            
+        except Exception as e:
+            logger.error(f"Error sending email response for case {case_id}: {e}")
+            return False
+    
+    def _get_case_context(self, case_id: str) -> Optional[Dict]:
+        """Get case context information"""
+        try:
+            # Import case service to get case information
+            from .case_service import CaseService
+            case_service = CaseService()
+            
+            case = case_service.get_case_by_id(case_id)
+            if case:
+                return {
+                    'case_id': case.get('case_id'),
+                    'case_number': case.get('case_number'),
+                    'case_title': case.get('case_title'),
+                    'status': case.get('status'),
+                    'priority': case.get('priority'),
+                    'assigned_to': case.get('assigned_to'),
+                    'customer_info': case.get('customer_info', {}),
+                    'sla_status': case.get('sla_status')
+                }
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error getting case context for {case_id}: {e}")
+            return None
+    
+    def get_case_email_thread(self, case_id: str) -> List[Dict]:
+        """Get all emails related to a specific case"""
+        try:
+            # Get case information
+            case_context = self._get_case_context(case_id)
+            if not case_context:
+                logger.error(f"Case context not found for case {case_id}")
+                return []
+            
+            # Get customer email
+            customer_email = case_context.get('customer_info', {}).get('email')
+            if not customer_email:
+                logger.error(f"Customer email not found for case {case_id}")
+                return []
+            
+            # Get all emails and filter by customer email
+            all_emails = self.get_emails(limit=100)
+            case_emails = []
+            
+            for email in all_emails:
+                sender_email = email.get('sender', {}).get('email', '').lower()
+                if sender_email == customer_email.lower():
+                    # Add case context to email
+                    enriched_email = email.copy()
+                    enriched_email['case_context'] = case_context
+                    case_emails.append(enriched_email)
+            
+            # Sort by date (newest first)
+            case_emails.sort(key=lambda x: x.get('receivedDateTime', ''), reverse=True)
+            
+            logger.info(f"Retrieved {len(case_emails)} emails for case {case_context.get('case_number')}")
+            return case_emails
+            
+        except Exception as e:
+            logger.error(f"Error getting case email thread for {case_id}: {e}")
+            return []
+    
+    def _log_outbound_email_to_thread(self, case_id: str, recipient_email: str, 
+                                     subject: str, body: str) -> None:
+        """Log outbound manual email response to case threads"""
+        try:
+            from .case_service import CaseService
+            from datetime import datetime
+            
+            case_service = CaseService()
+            
+            thread_data = {
+                'direction': 'Outbound',
+                'sender_name': 'HandyConnect Support',
+                'sender_email': 'handymyjob@outlook.com',
+                'subject': subject,
+                'body': body,
+                'timestamp': datetime.utcnow().isoformat()
+            }
+            
+            success = case_service.add_thread_to_case(case_id, thread_data)
+            
+            if success:
+                logger.info(f"✅ Logged manual email response to case threads for case {case_id}")
+            else:
+                logger.warning(f"⚠️  Failed to log manual email response to threads for case {case_id}")
+                
+        except Exception as e:
+            logger.error(f"Error logging outbound email thread for case {case_id}: {e}")
 
 

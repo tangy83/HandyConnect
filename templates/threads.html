@@ -16,20 +16,7 @@
 
         <!-- Thread Statistics Cards -->
         <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card bg-primary text-white">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h4 id="total-threads">{{ threads|length }}</h4>
-                                <p class="mb-0">Total Threads</p>
-                            </div>
-                            <i class="bi bi-chat-dots fs-1"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card bg-warning text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -42,7 +29,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card bg-info text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -55,7 +42,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card bg-success text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -93,6 +80,23 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Sorting Controls -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="sortThreads('created_at')">
+                            <i class="bi bi-sort-down" id="thread-sort-newest-icon"></i> Newest
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="sortThreads('priority')">
+                            <i class="bi bi-sort-up" id="thread-sort-priority-icon"></i> Priority
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="sortThreads('status')">
+                            <i class="bi bi-sort-alpha-down" id="thread-sort-status-icon"></i> Status
+                        </button>
+                    </div>
+                    <div class="text-muted small">
+                        <span id="threads-count">{{ threads|length }}</span> threads
+                    </div>
+                </div>
                 <div class="row g-2">
                     <div class="col-md-2">
                         <select class="form-select form-select-sm" id="thread-status-filter">
@@ -190,7 +194,10 @@
                             {% for thread in threads %}
                             <tr data-thread-id="{{ thread.id }}" 
                                 data-status="{{ thread.status }}" 
-                                data-priority="{{ thread.priority }}">
+                                data-priority="{{ thread.priority }}"
+                                onclick="handleThreadRowClick(event, '{{ thread.id }}')"
+                                class="thread-row"
+                                style="cursor: pointer;">
                                 <td>
                                     <input type="checkbox" class="thread-checkbox" value="{{ thread.id }}">
                                 </td>
@@ -232,7 +239,7 @@
                                     </select>
                                 </td>
                                 <td>
-                                    <small>{{ thread.last_activity.strftime('%Y-%m-%d %H:%M') if thread.last_activity else 'N/A' }}</small>
+                                    <small>{{ thread.last_activity if thread.last_activity else 'N/A' }}</small>
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" 
@@ -256,9 +263,19 @@
                 
                 <!-- Pagination Controls -->
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="text-muted">
-                        Showing <span id="showing-thread-start">1</span> to <span id="showing-thread-end">{{ threads|length }}</span> 
-                        of <span id="total-thread-count">{{ threads|length }}</span> threads
+                    <div class="d-flex align-items-center">
+                        <div class="text-muted me-3">
+                            Showing <span id="showing-thread-start">1</span> to <span id="showing-thread-end">{{ threads|length }}</span> 
+                            of <span id="total-thread-count">{{ threads|length }}</span> threads
+                        </div>
+                        <label for="page-size-select" class="form-label me-2 mb-0">Show:</label>
+                        <select class="form-select form-select-sm" id="page-size-select" style="width: auto;" onchange="changePageSize()">
+                            <option value="10">10</option>
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                        <span class="ms-2 text-muted">per page</span>
                     </div>
                     <nav aria-label="Thread pagination">
                         <ul class="pagination pagination-sm mb-0" id="thread-pagination-controls">
@@ -488,6 +505,48 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeThreadManagement();
     initializeThreadFilters();
 });
+
+// Utility function for date formatting
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            return dateString; // Return original string if not a valid date
+        }
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return dateString; // Return original string if parsing fails
+    }
+}
+
+// Utility functions for badge classes
+function getStatusBadgeClass(status) {
+    switch (status) {
+        case 'Active': return 'bg-success';
+        case 'Pending': return 'bg-warning';
+        case 'Resolved': return 'bg-info';
+        case 'Closed': return 'bg-secondary';
+        default: return 'bg-secondary';
+    }
+}
+
+function getPriorityBadgeClass(priority) {
+    switch (priority) {
+        case 'Urgent': return 'bg-danger';
+        case 'High': return 'bg-warning';
+        case 'Medium': return 'bg-info';
+        case 'Low': return 'bg-secondary';
+        default: return 'bg-secondary';
+    }
+}
 
 function initializeThreadManagement() {
     // Status change handlers

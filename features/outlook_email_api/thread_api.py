@@ -49,11 +49,32 @@ def get_threads():
             'message': f'Retrieved {len(thread_data)} threads',
             'data': thread_data
         })
-    
     except Exception as e:
         return jsonify({
             'status': 'error',
             'message': f'Error retrieving threads: {str(e)}'
+        }), 500
+
+@thread_bp.route('/clear', methods=['POST'])
+def clear_threads():
+    """Clear all threads from memory"""
+    try:
+        success = threading_service.clear_all_threads()
+        if success:
+            return jsonify({
+                'status': 'success',
+                'message': 'All threads cleared successfully',
+                'data': {'threads_cleared': True}
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to clear threads'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Error clearing threads: {str(e)}'
         }), 500
 
 @thread_bp.route('/<thread_id>', methods=['GET'])

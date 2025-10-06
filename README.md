@@ -53,6 +53,22 @@ HandyConnect/
 │   ├── deployment/             # Deployment scripts
 │   └── utilities/              # Utility scripts
 │       └── Makefile
+├── auth/                       # 🔐 Authentication tools
+│   ├── auth_display.py
+│   ├── auth_web.py
+│   ├── get_auth_code.py
+│   └── show_auth_code.py
+├── utilities/                  # 🛠️ Development utilities
+│   ├── ci_health_check.py
+│   ├── performance_optimizer.py
+│   └── verify_email_account.py
+├── testing/                    # 🧪 Test runners and tools
+│   ├── simple_test_runner.py
+│   ├── run_all_tests.py
+│   └── integration_test.py
+└── reports/                    # 📈 Reports and logs
+    ├── health_check_report.md
+    └── test_report_*.json
 ├── features/                   # 🏗️ Feature modules
 │   ├── outlook_email_api/      # Email integration
 │   ├── llm_prompt_design/      # AI prompt engineering

@@ -13,7 +13,7 @@ Features:
 from .ui_components import UIComponents
 from .mobile_interface import MobileInterface
 from .offline_manager import OfflineManager
-from .performance_optimizer import PerformanceOptimizer
+from ...utilities.performance_optimizer import PerformanceOptimizer
 
 __all__ = [
     'UIComponents',
@@ -21,6 +21,7 @@ __all__ = [
     'OfflineManager',
     'PerformanceOptimizer'
 ]
+
 
 
 

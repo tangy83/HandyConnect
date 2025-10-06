@@ -45,8 +45,6 @@
             // Templates
             't': { action: 'showTemplates', description: 'Show Task Templates' },
             
-            // View Toggle
-            'v': { action: 'toggleView', description: 'Toggle Table/Kanban View' },
             
             // Refresh
             'r': { action: 'refresh', description: 'Refresh Data' },
@@ -351,13 +349,6 @@
             console.log('Showing task templates');
         },
 
-        toggleView() {
-            if (window.KanbanManager) {
-                const currentView = localStorage.getItem('viewMode') || 'table';
-                const newView = currentView === 'table' ? 'kanban' : 'table';
-                window.KanbanManager.switchView(newView);
-            }
-        },
 
         refreshData() {
             if (window.TaskManager && window.TaskManager.refreshTasks) {
@@ -569,5 +560,6 @@
     window.showKeyboardShortcuts = () => ShortcutsManager.showHelpOverlay();
 
 })();
+
 
 

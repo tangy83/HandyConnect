@@ -94,25 +94,7 @@
             controlsContainer.innerHTML = `
                 <div class="row g-2">
                     <div class="col-md-8">
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button class="btn btn-outline-secondary" id="search-help" title="Search Help">
-                                <i class="bi bi-question-circle"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary" id="clear-search" title="Clear Search">
-                                <i class="bi bi-x-circle"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary" id="save-search" title="Save Search" disabled>
-                                <i class="bi bi-bookmark"></i>
-                            </button>
-                        </div>
-                        <div class="btn-group btn-group-sm ms-2" role="group">
-                            <button class="btn btn-outline-primary" id="recent-searches" title="Recent Searches">
-                                <i class="bi bi-clock-history"></i>
-                            </button>
-                            <button class="btn btn-outline-primary" id="saved-searches" title="Saved Searches">
-                                <i class="bi bi-bookmark-star"></i>
-                            </button>
-                        </div>
+                        <!-- Search controls removed - functionality moved to main interface -->
                     </div>
                     <div class="col-md-4 text-end">
                         <small class="text-muted" id="search-results-count">0 results</small>
@@ -144,20 +126,7 @@
                 }, 200);
             });
 
-            // Control buttons
-            document.addEventListener('click', (e) => {
-                if (e.target.id === 'search-help') {
-                    this.showSearchHelp();
-                } else if (e.target.id === 'clear-search') {
-                    this.clearSearch();
-                } else if (e.target.id === 'save-search') {
-                    this.saveCurrentSearch();
-                } else if (e.target.id === 'recent-searches') {
-                    this.showRecentSearches();
-                } else if (e.target.id === 'saved-searches') {
-                    this.showSavedSearches();
-                }
-            });
+            // Control buttons removed - functionality moved to main interface
 
             // Suggestion clicks
             this.suggestionsContainer.addEventListener('click', (e) => {
@@ -403,7 +372,8 @@
 
         async performSearch(query) {
             if (!query.trim()) {
-                this.clearSearch();
+                this.searchInput.value = '';
+                this.updateResultsCount(0);
                 return;
             }
 
@@ -467,18 +437,6 @@
             }
         },
 
-        clearSearch() {
-            this.searchInput.value = '';
-            this.queryChips = [];
-            this.updateQueryChips();
-            this.hideSuggestions();
-            this.updateResultsCount(0);
-            
-            // Reset task list
-            if (window.TaskManager && window.TaskManager.resetTaskList) {
-                window.TaskManager.resetTaskList();
-            }
-        },
 
         addToRecentSearches(query) {
             // Remove if already exists
@@ -506,82 +464,7 @@
             }
         },
 
-        saveCurrentSearch() {
-            const query = this.searchInput.value.trim();
-            if (!query) return;
 
-            const name = prompt('Enter a name for this search:');
-            if (!name) return;
-
-            this.savedSearches.push({
-                name: name,
-                query: query,
-                createdAt: new Date().toISOString()
-            });
-
-            localStorage.setItem('savedSearches', JSON.stringify(this.savedSearches));
-            
-            if (window.NotificationManager) {
-                window.NotificationManager.showSuccess('Search Saved', `"${name}" has been saved`);
-            }
-        },
-
-        showSearchHelp() {
-            const helpModal = document.createElement('div');
-            helpModal.className = 'modal fade';
-            helpModal.innerHTML = `
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Advanced Search Help</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <h6>Field Filters</h6>
-                            <p>Use <code>field:value</code> syntax to filter by specific fields:</p>
-                            <ul>
-                                <li><code>status:New</code> - Tasks with status "New"</li>
-                                <li><code>priority:High</code> - High priority tasks</li>
-                                <li><code>category:Technical Issue</code> - Technical issues</li>
-                                <li><code>assignee:John</code> - Tasks assigned to John</li>
-                            </ul>
-                            
-                            <h6>Logical Operators</h6>
-                            <p>Combine filters with AND, OR, NOT:</p>
-                            <ul>
-                                <li><code>status:New AND priority:High</code> - New high priority tasks</li>
-                                <li><code>category:Technical OR category:Billing</code> - Technical or billing issues</li>
-                                <li><code>NOT status:Completed</code> - All non-completed tasks</li>
-                            </ul>
-                            
-                            <h6>Text Search</h6>
-                            <p>Search in task content:</p>
-                            <ul>
-                                <li><code>heating problem</code> - Tasks containing "heating" and "problem"</li>
-                                <li><code>"exact phrase"</code> - Tasks containing exact phrase</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(helpModal);
-            new bootstrap.Modal(helpModal).show();
-            
-            helpModal.addEventListener('hidden.bs.modal', () => {
-                helpModal.remove();
-            });
-        },
-
-        showRecentSearches() {
-            // Implementation for showing recent searches dropdown
-            console.log('Show recent searches');
-        },
-
-        showSavedSearches() {
-            // Implementation for showing saved searches dropdown
-            console.log('Show saved searches');
-        },
 
         debounce(func, wait) {
             let timeout;
@@ -613,5 +496,6 @@
     window.AdvancedSearchManager = AdvancedSearchManager;
 
 })();
+
 
 

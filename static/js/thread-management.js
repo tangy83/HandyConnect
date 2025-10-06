@@ -3,11 +3,12 @@
 
 // Global variables for thread management
 let currentThreadPage = 1;
-let threadsPerPage = 10;
+let threadsPerPage = 20; // Default page size
 let totalThreads = 0;
 let filteredThreads = [];
 let selectedThreads = new Set();
 let currentThreadId = null;
+let currentThreadSort = { field: 'created_at', direction: 'desc' };
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Thread management frontend loaded');
@@ -361,6 +362,37 @@ function initializeThreadModals() {
     // Initialize Bootstrap modals
     const threadModal = new bootstrap.Modal(document.getElementById('threadModal'));
     const mergeModal = new bootstrap.Modal(document.getElementById('mergeModal'));
+}
+
+// ==================== PAGE SIZE MANAGEMENT ====================
+
+// Change page size
+function changePageSize() {
+    const pageSizeSelect = document.getElementById('page-size-select');
+    if (pageSizeSelect) {
+        threadsPerPage = parseInt(pageSizeSelect.value);
+        currentThreadPage = 1; // Reset to first page when changing page size
+        renderCurrentThreadPage();
+        updateThreadPaginationDisplay();
+        showNotification(`Showing ${threadsPerPage} records per page`, 'info');
+    }
+}
+
+// Handle row click for threads
+function handleThreadRowClick(event, threadId) {
+    // Don't trigger if clicking on interactive elements
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT' || event.target.tagName === 'BUTTON') {
+        return;
+    }
+    
+    // Prevent default if it was a link
+    if (event.target.tagName === 'A') {
+        event.preventDefault();
+    }
+    
+    // Open thread detail (you may need to implement this function)
+    console.log('Opening thread:', threadId);
+    // viewThreadDetail(threadId); // Uncomment when implemented
 }
 
 // Thread data management
@@ -1471,5 +1503,86 @@ function formatDate(dateString) {
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     } catch (error) {
         return dateString;
+    }
+}
+
+// ==================== THREAD SORTING ====================
+
+function sortThreads(sortBy) {
+    // Toggle sort direction if same field is clicked
+    if (currentThreadSort.field === sortBy) {
+        currentThreadSort.direction = currentThreadSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentThreadSort.field = sortBy;
+        currentThreadSort.direction = 'desc'; // Default to descending for new fields
+    }
+    
+    // Update sort icons
+    updateThreadSortIcons();
+    
+    // Sort the filtered threads
+    filteredThreads.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch (sortBy) {
+            case 'created_at':
+                aValue = new Date(a.created_at || 0);
+                bValue = new Date(b.created_at || 0);
+                break;
+            case 'priority':
+                const priorityOrder = { 'Urgent': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+                aValue = priorityOrder[a.priority] || 0;
+                bValue = priorityOrder[b.priority] || 0;
+                break;
+            case 'status':
+                aValue = (a.status || '').toLowerCase();
+                bValue = (b.status || '').toLowerCase();
+                break;
+            default:
+                return 0;
+        }
+        
+        // Handle comparison based on sort direction
+        if (currentThreadSort.direction === 'desc') {
+            return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+        } else {
+            return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+        }
+    });
+    
+    // Update thread count display
+    document.getElementById('threads-count').textContent = filteredThreads.length;
+    
+    // Reset to first page and render
+    currentThreadPage = 1;
+    renderThreads();
+    updateThreadPagination();
+    
+    // Show notification
+    showNotification(`Threads sorted by ${sortBy} (${currentThreadSort.direction})`, 'info');
+}
+
+// Update thread sort icon states
+function updateThreadSortIcons() {
+    // Reset all icons
+    document.getElementById('thread-sort-newest-icon').className = 'bi bi-sort-down';
+    document.getElementById('thread-sort-priority-icon').className = 'bi bi-sort-up';
+    document.getElementById('thread-sort-status-icon').className = 'bi bi-sort-alpha-down';
+    
+    // Update active sort icon
+    const iconMap = {
+        'created_at': 'thread-sort-newest-icon',
+        'priority': 'thread-sort-priority-icon',
+        'status': 'thread-sort-status-icon'
+    };
+    
+    const activeIcon = document.getElementById(iconMap[currentThreadSort.field]);
+    if (activeIcon) {
+        const iconMap2 = {
+            'created_at': { asc: 'bi-sort-up', desc: 'bi-sort-down' },
+            'priority': { asc: 'bi-sort-down', desc: 'bi-sort-up' },
+            'status': { asc: 'bi-sort-alpha-up', desc: 'bi-sort-alpha-down' }
+        };
+        activeIcon.className = `bi ${iconMap2[currentThreadSort.field][currentThreadSort.direction]}`;
     }
 }
