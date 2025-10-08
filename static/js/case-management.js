@@ -15,12 +15,76 @@ let currentTaskId = null; // Global variable to store current task ID
 let caseTasks = []; // Store tasks for the current case
 let currentCaseTaskSort = { field: 'created_at', direction: 'desc' }; // Sort state for case tasks
 
+// Utility function: debounce
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Utility function: throttle for high-frequency events
+function throttle(func, limit) {
+    let inThrottle;
+    return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
+
 // Initialize case management
 document.addEventListener('DOMContentLoaded', function() {
     updateSortIcons(); // Set initial sort icon state
     loadCases();
     initializeEventListeners();
+    initializeMessageInputOptimizations();
 });
+
+// Optimize message input for better keyboard responsiveness
+function initializeMessageInputOptimizations() {
+    // Add event listeners for message textarea when modal is shown
+    document.getElementById('emailResponseModal').addEventListener('shown.bs.modal', function() {
+        const messageTextarea = document.getElementById('response-message');
+        if (messageTextarea) {
+            // Remove any existing listeners to prevent duplicates
+            messageTextarea.removeEventListener('input', handleMessageInput);
+            messageTextarea.removeEventListener('keydown', handleMessageKeydown);
+            
+            // Add optimized input handlers
+            messageTextarea.addEventListener('input', throttle(handleMessageInput, 16), { passive: true });
+            messageTextarea.addEventListener('keydown', handleMessageKeydown, { passive: true });
+            
+            // Focus the textarea
+            setTimeout(() => messageTextarea.focus(), 100);
+        }
+    });
+}
+
+// Handle message input with optimizations
+function handleMessageInput(event) {
+    // This function can be used for real-time validation or character counting
+    // Currently kept minimal to avoid performance issues
+}
+
+// Handle message keydown events
+function handleMessageKeydown(event) {
+    // Handle special keys without interfering with normal typing
+    if (event.key === 'Enter' && event.ctrlKey) {
+        // Ctrl+Enter to send
+        event.preventDefault();
+        sendEmailResponse();
+    }
+}
 
 // Event listeners
 function initializeEventListeners() {
@@ -28,7 +92,7 @@ function initializeEventListeners() {
     document.getElementById('create-case-form').addEventListener('submit', handleCreateCase);
     
     // Search input
-    document.getElementById('search-input').addEventListener('input', debounce(searchCases, 300));
+    document.getElementById('search-input').addEventListener('input', debounce(searchCases, 150));
     
     // Filter changes
     ['status-filter', 'priority-filter', 'type-filter'].forEach(filterId => {
@@ -2313,5 +2377,279 @@ async function submitTaskAssignment() {
     } catch (error) {
         console.error('Error assigning task:', error);
         showError('Failed to assign task: ' + error.message);
+    }
+}
+
+// Email Response Functions
+function showEmailResponseModal() {
+    if (!currentCaseId) {
+        showError('No case selected');
+        return;
+    }
+    
+    // Get case details
+    const caseData = allCases.find(c => c.case_id === currentCaseId);
+    if (!caseData) {
+        showError('Case not found');
+        return;
+    }
+    
+    // Populate form
+    document.getElementById('response-to').value = caseData.customer_info.email;
+    document.getElementById('response-subject').value = `Re: ${caseData.case_title}`;
+    document.getElementById('response-message').value = '';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('emailResponseModal'));
+    modal.show();
+}
+
+async function sendEmailResponse() {
+    const to = document.getElementById('response-to').value;
+    const subject = document.getElementById('response-subject').value;
+    const message = document.getElementById('response-message').value;
+    const includeDetails = document.getElementById('include-case-details').checked;
+    
+    if (!to || !subject || !message) {
+        showError('Please fill in all required fields');
+        return;
+    }
+    
+    try {
+        const submitBtn = document.querySelector('#emailResponseModal .btn-primary');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending...';
+        
+        const response = await fetch(`/api/cases/${currentCaseId}/send-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                to: to,
+                subject: subject,
+                message: message,
+                include_case_details: includeDetails
+            })
+        });
+        
+        const result = await response.json();
+        
+        // Restore button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        
+        if (result.status === 'success') {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('emailResponseModal'));
+            modal.hide();
+            
+            // Show success message
+            showSuccess('Email sent successfully!');
+            
+            // Reload communication to show sent email
+            await loadCaseCommunication(currentCaseId);
+            
+        } else {
+            showError('Failed to send email: ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('Error sending email:', error);
+        showError('Failed to send email: ' + error.message);
+    }
+}
+
+// Task Management Functions
+function addNewTask() {
+    if (!currentCaseId) {
+        showError('No case selected');
+        return;
+    }
+    
+    // Show task creation modal
+    showTaskCreationModal();
+}
+
+function showTaskCreationModal() {
+    // Create modal HTML if it doesn't exist
+    let modal = document.getElementById('taskCreationModal');
+    if (!modal) {
+        modal = createTaskCreationModal();
+        document.body.appendChild(modal);
+    }
+    
+    // Reset form
+    document.getElementById('task-subject').value = '';
+    document.getElementById('task-description').value = '';
+    document.getElementById('task-priority').value = 'Medium';
+    document.getElementById('task-assignee-name').value = '';
+    document.getElementById('task-assignee-email').value = '';
+    document.getElementById('task-assignee-role').value = 'Internal';
+    
+    // Show modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+function createTaskCreationModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.id = 'taskCreationModal';
+    modal.setAttribute('tabindex', '-1');
+    modal.setAttribute('aria-labelledby', 'taskCreationModalLabel');
+    modal.setAttribute('aria-hidden', 'true');
+    
+    modal.innerHTML = `
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskCreationModalLabel">
+                        <i class="bi bi-plus-circle"></i> Add New Task
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="taskCreationForm">
+                        <div class="mb-3">
+                            <label for="task-subject" class="form-label">Task Subject *</label>
+                            <input type="text" class="form-control" id="task-subject" required placeholder="Enter task subject">
+                        </div>
+                        <div class="mb-3">
+                            <label for="task-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="task-description" rows="3" placeholder="Enter task description"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="task-priority" class="form-label">Priority</label>
+                                    <select class="form-select" id="task-priority">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="task-assignee-role" class="form-label">Assignee Type</label>
+                                    <select class="form-select" id="task-assignee-role" onchange="toggleAssigneeFields()">
+                                        <option value="Internal">Internal Team</option>
+                                        <option value="External">External Contractor</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" id="assignee-fields">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="task-assignee-name" class="form-label">Assignee Name</label>
+                                    <input type="text" class="form-control" id="task-assignee-name" placeholder="Enter assignee name">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="task-assignee-email" class="form-label">Assignee Email</label>
+                                    <input type="email" class="form-control" id="task-assignee-email" placeholder="Enter assignee email">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitTaskCreation()">
+                        <i class="bi bi-plus"></i> Create Task
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return modal;
+}
+
+function toggleAssigneeFields() {
+    const role = document.getElementById('task-assignee-role').value;
+    const fields = document.getElementById('assignee-fields');
+    
+    if (role === 'Internal') {
+        fields.style.display = 'none';
+    } else {
+        fields.style.display = 'block';
+    }
+}
+
+async function submitTaskCreation() {
+    const subject = document.getElementById('task-subject').value;
+    const description = document.getElementById('task-description').value;
+    const priority = document.getElementById('task-priority').value;
+    const assigneeName = document.getElementById('task-assignee-name').value;
+    const assigneeEmail = document.getElementById('task-assignee-email').value;
+    const assigneeRole = document.getElementById('task-assignee-role').value;
+    
+    if (!subject) {
+        showError('Please enter a task subject');
+        return;
+    }
+    
+    try {
+        const submitBtn = document.querySelector('#taskCreationModal .btn-primary');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Creating...';
+        
+        const taskData = {
+            subject: subject,
+            description: description,
+            priority: priority,
+            assigned_to: assigneeName || null,
+            assigned_email: assigneeEmail || null,
+            assigned_role: assigneeRole
+        };
+        
+        const response = await fetch(`/api/cases/${currentCaseId}/tasks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(taskData)
+        });
+        
+        const result = await response.json();
+        
+        // Restore button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        
+        if (result.status === 'success') {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('taskCreationModal'));
+            modal.hide();
+            
+            // Show success message
+            showSuccess('Task created successfully!');
+            
+            // Reload tasks
+            await loadCaseTasks(currentCaseId);
+            
+            // If external assignee, show assignment notification
+            if (assigneeRole === 'External' && assigneeEmail) {
+                showSuccess(`Task assigned to ${assigneeName} (${assigneeEmail}). Notification email sent.`);
+            }
+            
+        } else {
+            showError('Failed to create task: ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('Error creating task:', error);
+        showError('Failed to create task: ' + error.message);
     }
 }

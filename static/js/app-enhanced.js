@@ -1,27 +1,27 @@
 // HandyConnect Frontend JavaScript - Enhanced Version
 // Advanced functionality for the task management interface
 
-// Feature Flags Configuration
+// Feature Flags Configuration (optimized for performance)
 const FEATURE_FLAGS = {
-    websockets: true,
+    websockets: false,  // Disabled to fix keyboard issues
     loaders: true,
     notifications: true,
     darkMode: true,
     keyboardShortcuts: true,
     inlineEditing: true,
-    wordCloud: true,
-    contextMenu: true,
-    realTimeNotifications: true,
-    residentSidebar: true,
-    analyticsDrilldown: true,
-    exportEnhancements: true,
-    advancedSearch: true,
+    wordCloud: false,  // Disabled for performance
+    contextMenu: false,  // Disabled for performance
+    realTimeNotifications: false,  // Disabled for performance
+    residentSidebar: false,  // Disabled for performance
+    analyticsDrilldown: false,  // Disabled for performance
+    exportEnhancements: false,  // Disabled for performance
+    advancedSearch: false,  // Disabled for performance
     bulkActions: true,
-    mobileCards: true,
+    mobileCards: false,  // Disabled for performance
     confirmations: true,
-    customizableDashboard: true,
-    taskTimeline: true,
-    taskTemplates: true
+    customizableDashboard: false,  // Disabled for performance
+    taskTimeline: false,  // Disabled for performance
+    taskTemplates: false  // Disabled for performance
 };
 
 // Global variables for pagination and state management

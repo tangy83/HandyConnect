@@ -281,7 +281,7 @@ class RealtimeMetricsCollector:
             framework = get_analytics_framework()
             
             # Task count
-            tasks = framework.persistence.load_tasks()
+            tasks = framework.persistence.load_task_analytics()
             task_count = len(tasks)
             
             # Check if task count changed

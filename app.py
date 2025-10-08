@@ -892,38 +892,39 @@ if __name__ == '__main__':
     polling_thread = threading.Thread(target=email_polling_worker, daemon=True)
     polling_thread.start()
     
-    # Initialize analytics framework
+    # Initialize analytics framework (temporarily disabled to fix performance)
     try:
-        analytics_config = AnalyticsConfig(
-            collection_interval_seconds=60,
-            aggregation_interval_minutes=15,
-            retention_days=90,
-            enable_real_time=True,
-            enable_historical=True
-        )
-        analytics_framework = AnalyticsFramework(analytics_config)
-        analytics_framework.start()
-        logger.info("Analytics framework started")
+        # analytics_config = AnalyticsConfig(
+        #     collection_interval_seconds=60,
+        #     aggregation_interval_minutes=15,
+        #     retention_days=90,
+        #     enable_real_time=True,
+        #     enable_historical=True
+        # )
+        # analytics_framework = AnalyticsFramework(analytics_config)
+        # analytics_framework.start()
+        logger.info("Analytics framework temporarily disabled for performance")
         
-        # Start performance monitoring
-        start_performance_monitoring(interval_seconds=60)
-        logger.info("Performance monitoring started")
+        # Start performance monitoring (temporarily disabled to fix case loading)
+        # start_performance_monitoring(interval_seconds=60)
+        logger.info("Performance monitoring temporarily disabled")
         
-        # Initialize WebSocket support
-        if WEBSOCKET_AVAILABLE:
-            socketio = initialize_websocket_support(app)
-            if socketio:
-                logger.info("WebSocket support initialized")
-            else:
-                logger.warning("WebSocket support failed to initialize")
-        else:
-            logger.warning("WebSocket support not available - Flask-SocketIO not installed")
+        # Initialize WebSocket support (temporarily disabled to fix performance)
+        # if WEBSOCKET_AVAILABLE:
+        #     socketio = initialize_websocket_support(app)
+        #     if socketio:
+        #         logger.info("WebSocket support initialized")
+        #     else:
+        #         logger.warning("WebSocket support failed to initialize")
+        # else:
+        #     logger.warning("WebSocket support not available - Flask-SocketIO not installed")
+        logger.info("WebSocket support temporarily disabled for performance")
         
-        # Start real-time dashboard services
+        # Start real-time dashboard services (temporarily disabled to fix case loading)
         try:
-            realtime_broadcaster = get_realtime_broadcaster()
-            realtime_collector = get_realtime_collector()
-            logger.info("Real-time dashboard services started")
+            # realtime_broadcaster = get_realtime_broadcaster()
+            # realtime_collector = get_realtime_collector()
+            logger.info("Real-time dashboard services temporarily disabled")
         except Exception as e:
             logger.error(f"Failed to start real-time dashboard services: {e}")
         

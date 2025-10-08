@@ -32,15 +32,15 @@ class CaseService:
             from .workflow_service import WorkflowService, WorkflowTrigger
             from .notification_service import NotificationService
             from .cache_service import get_case_cache, invalidate_case_cache
-            from .performance_monitor import get_performance_monitor, performance_timer
+            # from .performance_monitor import get_performance_monitor, performance_timer  # Temporarily disabled
             
             self.sla_service = SLAService()
             self.workflow_service = WorkflowService()
             self.notification_service = NotificationService()
             self.email_notification_service = EmailNotificationService()
             self.cache = get_case_cache()
-            self.performance_monitor = get_performance_monitor()
-            logger.info("Advanced case services initialized successfully")
+            self.performance_monitor = None  # Temporarily disabled
+            logger.info("Advanced case services initialized successfully (performance monitoring disabled)")
         except Exception as e:
             logger.warning(f"Advanced services not available: {e}")
             self.sla_service = None
