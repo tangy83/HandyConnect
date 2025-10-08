@@ -492,10 +492,23 @@ def poll_emails():
                 
                 # Create or find case for this email/thread
                 existing_case = case_service.find_case_by_thread(thread_id)
+                
+                # IMPROVED LOGIC: Only link to existing case if:
+                # 1. Same thread (conversation reply)
+                # 2. Email references an existing case ID in subject/body
+                # Otherwise, create NEW case
+                
                 if not existing_case:
-                    # Try to find existing open case for this customer
-                    customer_email = email['sender']['email']
-                    existing_case = case_service.find_case_by_customer_email(customer_email)
+                    # Check if email references an existing case ID (e.g., "Case #2510070001")
+                    email_text = f"{email.get('subject', '')} {email.get('body', '')}"
+                    case_id_pattern = r'(?:Case #|CASE #|case #)(\d{10})'
+                    import re
+                    match = re.search(case_id_pattern, email_text)
+                    if match:
+                        case_number = match.group(1)
+                        existing_case = case_service.get_case_by_number(case_number)
+                        if existing_case:
+                            logger.info(f"Found case by reference: {case_number}")
                 
                 if existing_case:
                     # Use existing case
@@ -635,10 +648,23 @@ def email_polling_worker():
                     
                     # Create or find case for this email/thread
                     existing_case = case_service.find_case_by_thread(thread_id)
+                    
+                    # IMPROVED LOGIC: Only link to existing case if:
+                    # 1. Same thread (conversation reply)
+                    # 2. Email references an existing case ID in subject/body
+                    # Otherwise, create NEW case
+                    
                     if not existing_case:
-                        # Try to find existing open case for this customer
-                        customer_email = email['sender']['email']
-                        existing_case = case_service.find_case_by_customer_email(customer_email)
+                        # Check if email references an existing case ID (e.g., "Case #2510070001")
+                        email_text = f"{email.get('subject', '')} {email.get('body', '')}"
+                        case_id_pattern = r'(?:Case #|CASE #|case #)(\d{10})'
+                        import re
+                        match = re.search(case_id_pattern, email_text)
+                        if match:
+                            case_number = match.group(1)
+                            existing_case = case_service.get_case_by_number(case_number)
+                            if existing_case:
+                                logger.info(f"[Worker] Found case by reference: {case_number}")
                     
                     if existing_case:
                         # Use existing case
