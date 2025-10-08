@@ -292,7 +292,12 @@
                     <i class="bi bi-folder2-open"></i> 
                     <span id="case-modal-number">Case Details</span>
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="btn btn-sm btn-outline-warning me-2" onclick="showMergeCaseModal()" title="Merge this case into another case">
+                        <i class="bi bi-arrow-down-up"></i> Merge Case
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
             <div class="modal-body" id="case-detail-content">
                 <!-- AI Summary Section - Enhanced -->
@@ -866,6 +871,64 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="submitTaskAssignment()">
                     <i class="bi bi-send"></i> Assign & Notify
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Merge Case Modal -->
+<div class="modal fade" id="mergeCaseModal" tabindex="-1" aria-labelledby="mergeCaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning bg-opacity-10">
+                <h5 class="modal-title" id="mergeCaseModalLabel">
+                    <i class="bi bi-arrow-down-up"></i> Merge Case
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>What happens when you merge?</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>All threads will be moved to the target case</li>
+                        <li>All tasks will be moved to the target case</li>
+                        <li>This case will be marked as "Merged"</li>
+                        <li>AI summary will be regenerated for target case</li>
+                    </ul>
+                </div>
+                
+                <form id="merge-case-form">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Merge this case:</strong></label>
+                        <div class="p-2 bg-light rounded border">
+                            <div class="fw-bold" id="merge-source-case-number"></div>
+                            <small class="text-muted" id="merge-source-case-title"></small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Into this case:</strong></label>
+                        <select class="form-select" id="merge-target-case-id" required>
+                            <option value="">-- Select target case --</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <small class="form-text text-muted">
+                            Select the case that should receive all the threads and tasks
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="merge-reason" class="form-label">Reason for merge (optional)</label>
+                        <textarea class="form-control" id="merge-reason" rows="2" placeholder="e.g., Same customer, same issue, incorrectly split"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="executeCaseMerge()">
+                    <i class="bi bi-arrow-down-up"></i> Merge Cases
                 </button>
             </div>
         </div>

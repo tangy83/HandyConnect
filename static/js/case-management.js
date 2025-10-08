@@ -2653,3 +2653,138 @@ async function submitTaskCreation() {
         showError('Failed to create task: ' + error.message);
     }
 }
+
+// ===== CASE MERGE FUNCTIONS =====
+
+// Show merge case modal
+function showMergeCaseModal() {
+    if (!currentCaseId) {
+        showError('No case selected');
+        return;
+    }
+    
+    // Get current case details
+    const currentCase = allCases.find(c => c.case_id === currentCaseId);
+    if (!currentCase) {
+        showError('Case not found');
+        return;
+    }
+    
+    // Populate source case info
+    document.getElementById('merge-source-case-number').textContent = currentCase.case_number;
+    document.getElementById('merge-source-case-title').textContent = currentCase.case_title;
+    
+    // Populate target case dropdown
+    populateMergeTargetDropdown();
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('mergeCaseModal'));
+    modal.show();
+}
+
+// Populate target case dropdown
+function populateMergeTargetDropdown() {
+    const select = document.getElementById('merge-target-case-id');
+    
+    // Clear existing options
+    select.innerHTML = '<option value="">-- Select target case --</option>';
+    
+    // Add other cases as options (exclude current case and merged cases)
+    allCases.forEach(caseItem => {
+        if (caseItem.case_id !== currentCaseId && caseItem.status !== 'Merged') {
+            const option = document.createElement('option');
+            option.value = caseItem.case_id;
+            option.textContent = `${caseItem.case_number} - ${caseItem.case_title}`;
+            select.appendChild(option);
+        }
+    });
+    
+    if (select.children.length === 1) {
+        select.innerHTML = '<option value="">No other cases available to merge into</option>';
+        select.disabled = true;
+    } else {
+        select.disabled = false;
+    }
+}
+
+// Execute case merge
+async function executeCaseMerge() {
+    const targetCaseId = document.getElementById('merge-target-case-id').value;
+    const reason = document.getElementById('merge-reason').value;
+    
+    if (!targetCaseId) {
+        showError('Please select a target case to merge into');
+        return;
+    }
+    
+    if (!currentCaseId) {
+        showError('No source case selected');
+        return;
+    }
+    
+    // Confirm merge
+    const sourceCase = allCases.find(c => c.case_id === currentCaseId);
+    const targetCase = allCases.find(c => c.case_id === targetCaseId);
+    
+    const confirmMessage = `Are you sure you want to merge case ${sourceCase.case_number} into case ${targetCase.case_number}?\n\nThis will:\n• Move all threads and tasks to ${targetCase.case_number}\n• Mark ${sourceCase.case_number} as "Merged"\n• This action cannot be undone`;
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        const submitBtn = document.querySelector('#mergeCaseModal .btn-warning');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Merging...';
+        
+        const response = await fetch(`/api/cases/${currentCaseId}/merge-into/${targetCaseId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                reason: reason || 'Manual merge by user'
+            })
+        });
+        
+        const result = await response.json();
+        
+        // Restore button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        
+        if (result.status === 'success') {
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('mergeCaseModal'));
+            modal.hide();
+            
+            // Show success message
+            showSuccess(`Successfully merged case ${result.data.source_case_number} into ${result.data.target_case_number}!`);
+            showSuccess(`Moved ${result.data.threads_moved} threads and ${result.data.tasks_moved} tasks.`);
+            
+            // Refresh cases list
+            await loadCases();
+            
+            // Close case detail modal since source case is now merged
+            const caseDetailModal = bootstrap.Modal.getInstance(document.getElementById('caseDetailModal'));
+            if (caseDetailModal) {
+                caseDetailModal.hide();
+            }
+            
+        } else {
+            showError('Failed to merge cases: ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('Error merging cases:', error);
+        showError('Failed to merge cases: ' + error.message);
+        
+        // Restore button
+        const submitBtn = document.querySelector('#mergeCaseModal .btn-warning');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-arrow-down-up"></i> Merge Cases';
+    }
+}

@@ -812,3 +812,50 @@ def assign_case_task(case_id: str, task_id: int):
         import traceback
         traceback.print_exc()
         return error_response("Failed to assign task", 500)
+
+
+@case_bp.route('/<source_case_id>/merge-into/<target_case_id>', methods=['POST'])
+def merge_cases(source_case_id: str, target_case_id: str):
+    """
+    Merge one case into another
+    
+    Use this when the system incorrectly created separate cases for the same issue.
+    
+    Request body (optional):
+    {
+        "reason": "Same customer, same issue, split incorrectly"
+    }
+    
+    This will:
+    - Move all threads from source to target
+    - Move all tasks from source to target
+    - Mark source case as "Merged"
+    - Add timeline events to both cases
+    - Regenerate AI summary for target
+    """
+    try:
+        data = request.get_json() or {}
+        merge_reason = data.get('reason')
+        
+        result = case_service.merge_case_to_parent(
+            source_case_id=source_case_id,
+            target_case_id=target_case_id,
+            merge_reason=merge_reason
+        )
+        
+        if result.get('success'):
+            return success_response(
+                data={
+                    'source_case_number': result['source_case_number'],
+                    'target_case_number': result['target_case_number'],
+                    'threads_moved': result['threads_moved'],
+                    'tasks_moved': result['tasks_moved']
+                },
+                message=result['message']
+            )
+        else:
+            return error_response(result.get('error', 'Merge failed'), 400)
+            
+    except Exception as e:
+        logger.error(f"Error merging cases {source_case_id} → {target_case_id}: {e}")
+        return error_response("Failed to merge cases", 500)

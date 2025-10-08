@@ -342,7 +342,22 @@ class CaseService:
             
             # Send automated acknowledgment email to customer
             customer_email = customer_info.get('email')
-            if customer_email:
+            
+            # Skip sending acknowledgment if:
+            # 1. Customer email is our own email (self-goal prevention)
+            # 2. Customer email is Microsoft internal (postmaster, noreply, etc.)
+            # 3. Customer email is empty or invalid
+            should_send_acknowledgment = (
+                customer_email and 
+                customer_email.lower() not in ['handymyjob@outlook.com', 'handyconnect@outlook.com'] and
+                not customer_email.lower().startswith('postmaster@') and
+                not customer_email.lower().startswith('noreply@') and
+                not customer_email.lower().startswith('no-reply@') and
+                '@' in customer_email and
+                '.' in customer_email.split('@')[1]  # Basic email validation
+            )
+            
+            if should_send_acknowledgment:
                 try:
                     from .acknowledgment_service import AcknowledgmentService
                     acknowledgment_service = AcknowledgmentService()
@@ -362,6 +377,8 @@ class CaseService:
                         # acknowledgment_service.retry_failed_acknowledgment(case_id)
                 except Exception as e:
                     logger.error(f"Error sending acknowledgment email: {e}")
+            else:
+                logger.info(f"⏭️ Skipping acknowledgment email for case {case_number} - invalid/self email: {customer_email}")
             
             logger.info(f"Created new case {case_number} for email {email.get('id', 'unknown')}")
             return case
@@ -1126,3 +1143,145 @@ class CaseService:
         except Exception as e:
             logger.error(f"Error getting case threads: {e}")
             return []
+    
+    def merge_case_to_parent(self, source_case_id: str, target_case_id: str, merge_reason: str = None) -> Dict[str, Any]:
+        """
+        Merge a case into another case (for incorrectly split cases)
+        
+        This will:
+        1. Move all threads from source case to target case
+        2. Move all tasks from source case to target case
+        3. Add timeline events to both cases
+        4. Mark source case as "Merged" status
+        5. Add reference in source case to target case
+        
+        Args:
+            source_case_id: Case to merge (will be marked as merged)
+            target_case_id: Case to merge into (will receive all data)
+            merge_reason: Optional reason for merge
+        
+        Returns:
+            Dict with status and details
+        """
+        try:
+            cases = self.load_cases()
+            
+            source_case = next((c for c in cases if c['case_id'] == source_case_id), None)
+            target_case = next((c for c in cases if c['case_id'] == target_case_id), None)
+            
+            if not source_case:
+                return {'success': False, 'error': f'Source case {source_case_id} not found'}
+            
+            if not target_case:
+                return {'success': False, 'error': f'Target case {target_case_id} not found'}
+            
+            if source_case_id == target_case_id:
+                return {'success': False, 'error': 'Cannot merge a case into itself'}
+            
+            # Track what's being merged
+            threads_moved = len(source_case.get('threads', []))
+            tasks_moved = len(source_case.get('tasks', []))
+            
+            # 1. Move threads to target case
+            target_threads = target_case.get('threads', [])
+            for thread in source_case.get('threads', []):
+                # Add note that this thread came from merged case
+                thread['_merged_from'] = {
+                    'case_id': source_case_id,
+                    'case_number': source_case.get('case_number'),
+                    'merged_at': datetime.utcnow().isoformat()
+                }
+                target_threads.append(thread)
+            target_case['threads'] = target_threads
+            
+            # 2. Move tasks to target case
+            target_tasks = target_case.get('tasks', [])
+            for task_id in source_case.get('tasks', []):
+                if task_id not in target_tasks:
+                    target_tasks.append(task_id)
+                    # Update task's case_id reference
+                    from features.core_services.task_service import TaskService
+                    task_service = TaskService()
+                    task = task_service.get_task(task_id)
+                    if task:
+                        task['case_id'] = target_case_id
+                        task['notes'] = task.get('notes', [])
+                        if isinstance(task['notes'], str):
+                            task['notes'] = [task['notes']]
+                        task['notes'].append(
+                            f"Moved from case {source_case.get('case_number')} (merged at {datetime.utcnow().strftime('%Y-%m-%d %H:%M')})"
+                        )
+                        task_service.update_task(task_id, task)
+            target_case['tasks'] = target_tasks
+            
+            # 3. Add timeline event to target case
+            merge_event = {
+                'event_id': str(uuid.uuid4()),
+                'event_type': 'case_merged',
+                'timestamp': datetime.utcnow().isoformat(),
+                'actor': 'user',  # TODO: Get from session
+                'description': f"Case {source_case.get('case_number')} merged into this case",
+                'metadata': {
+                    'source_case_id': source_case_id,
+                    'source_case_number': source_case.get('case_number'),
+                    'threads_moved': threads_moved,
+                    'tasks_moved': tasks_moved,
+                    'reason': merge_reason or 'Manual merge by user'
+                }
+            }
+            target_case['timeline'].append(merge_event)
+            target_case['updated_at'] = datetime.utcnow().isoformat()
+            target_case['case_metadata']['last_activity_date'] = datetime.utcnow().isoformat()
+            
+            # 4. Update source case
+            source_case['status'] = 'Merged'
+            source_case['merged_into'] = {
+                'case_id': target_case_id,
+                'case_number': target_case.get('case_number'),
+                'merged_at': datetime.utcnow().isoformat(),
+                'reason': merge_reason or 'Manual merge by user'
+            }
+            
+            # Add timeline event to source case
+            source_merge_event = {
+                'event_id': str(uuid.uuid4()),
+                'event_type': 'case_merged_out',
+                'timestamp': datetime.utcnow().isoformat(),
+                'actor': 'user',
+                'description': f"This case was merged into case {target_case.get('case_number')}",
+                'metadata': {
+                    'target_case_id': target_case_id,
+                    'target_case_number': target_case.get('case_number'),
+                    'reason': merge_reason or 'Manual merge by user'
+                }
+            }
+            source_case['timeline'].append(source_merge_event)
+            source_case['updated_at'] = datetime.utcnow().isoformat()
+            
+            # Clear threads and tasks from source (they've been moved)
+            source_case['threads'] = []
+            source_case['tasks'] = []
+            
+            # 5. Save all changes
+            self.save_cases(cases)
+            
+            # 6. Regenerate AI summary for target case with new content
+            self.regenerate_summary_for_case(target_case_id)
+            
+            logger.info(f"✅ Successfully merged case {source_case.get('case_number')} into {target_case.get('case_number')}")
+            logger.info(f"   Moved {threads_moved} threads and {tasks_moved} tasks")
+            
+            return {
+                'success': True,
+                'source_case_number': source_case.get('case_number'),
+                'target_case_number': target_case.get('case_number'),
+                'threads_moved': threads_moved,
+                'tasks_moved': tasks_moved,
+                'message': f'Successfully merged case {source_case.get("case_number")} into {target_case.get("case_number")}'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error merging cases: {e}")
+            import traceback
+            traceback.print_exc()
+            return {'success': False, 'error': str(e)}
